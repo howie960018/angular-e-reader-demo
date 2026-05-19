@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Ebookstore ERD (Draggable & Dynamic Routes)</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #eef0f3; font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; }
+h1 { text-align: center; color: #2c3e50; margin-bottom: 5px; font-size: 20px; }
+.sub { text-align: center; color: #7f8c8d; font-size: 12px; margin-bottom: 16px; }
+#wrap { overflow: auto; background: white; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 20px; }
+#canvas { position: relative; width: 1820px; height: 1250px; background-image: radial-gradient(#e0e0e0 1px, transparent 1px); background-size: 20px 20px; }
+#svg { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1; }
+
+.entity { position: absolute; border-radius: 5px; overflow: hidden; z-index: 2; background: white; width: 236px; box-shadow: 0 1px 6px rgba(0,0,0,0.13); border: 1px solid #c8cdd5; transition: box-shadow 0.1s; }
+.entity.dragging { z-index: 100 !important; box-shadow: 0 8px 25px rgba(0,0,0,0.2); opacity: 0.95; }
+.eh { padding: 5px 9px 5px; color: white; cursor: grab; user-select: none; }
+.entity.dragging .eh { cursor: grabbing; }
+.en { font-weight: 700; font-size: 12px; display:block; }
+.et { font-size: 9.5px; opacity: 0.78; display:block; margin-top:1px; }
+
+.ef { background: white; }
+.fr { display:flex; align-items:center; gap:4px; padding:2px 7px; border-bottom:1px solid #ebebeb; font-size:10.5px; min-height:19px; }
+.fr:last-child { border-bottom:none; }
+.fnote { background:#fffbe6; color:#7d6a00; font-size:9.5px; justify-content:center; font-style:italic; }
+.b { display:inline-block; padding:0 3px; border-radius:2px; font-size:8.5px; font-weight:700; width:20px; text-align:center; flex-shrink:0; line-height:14px; }
+.pk { background:#f0c040; color:#5a4200; }
+.fk { background:#a8d8f0; color:#1a4a6a; }
+.uk { background:#b8f0b8; color:#1a5a1a; }
+.eb { display:inline-block; width:20px; flex-shrink:0; }
+.fn { flex:1; color:#222; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ft { color:#95a5a6; font-size:9.5px; flex-shrink:0; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+.cu { background:#c0392b; }
+.cb { background:#2471a3; }
+.cg { background:#1a8a6a; }
+.cs { background:#229954; }
+.co { background:#7d3c98; }
+.cw { background:#148f77; }
+.ct { background:#ba6a10; }
+.cp { background:#2c3e50; }
+.cP { background:#1a6b4a; }
+.cr { background:#cb4335; }
+
+.leg { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; padding:9px 14px; background:#f8f9fa; border-radius:8px; border:1px solid #dee2e6; font-size:10.5px; align-items:center; }
+.lg { display:flex; align-items:center; gap:4px; }
+.ld { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+.sep { height:13px; width:1px; background:#ccc; margin:0 4px; }
+</style>
+</head>
+<body>
+<h1>📚 Ebookstore — Entity Relationship Diagram</h1>
+<p class="sub">Spring Boot + JPA · 16 Entities · H2 In-Memory Database (可拖曳排版版)</p>
+<div class="leg">
+  <b>Domain：</b>
+  <span class="lg"><span class="ld" style="background:#c0392b"></span>使用者</span>
+  <span class="lg"><span class="ld" style="background:#2471a3"></span>書籍</span>
+  <span class="lg"><span class="ld" style="background:#1a8a6a"></span>分類</span>
+  <span class="lg"><span class="ld" style="background:#229954"></span>購物車</span>
+  <span class="lg"><span class="ld" style="background:#7d3c98"></span>訂單</span>
+  <span class="lg"><span class="ld" style="background:#148f77"></span>錢包</span>
+  <span class="lg"><span class="ld" style="background:#ba6a10"></span>儲值碼</span>
+  <span class="lg"><span class="ld" style="background:#2c3e50"></span>平台金流</span>
+  <span class="lg"><span class="ld" style="background:#1a6b4a"></span>出版商</span>
+  <span class="lg"><span class="ld" style="background:#cb4335"></span>結算</span>
+  <span class="sep"></span>
+  <span class="lg"><span class="b pk">PK</span> Primary Key</span>
+  <span class="lg"><span class="b fk">FK</span> Foreign Key</span>
+  <span class="lg"><span class="b uk">UK</span> Unique</span>
+  <span class="sep"></span>
+  <span style="font-size:10px;color:#555">─── 1:N 關係 &nbsp;┆&nbsp; ── ─ N:1 關係</span>
+</div>
+<div id="wrap" style="margin-top: 10px;">
+  <div id="canvas"><svg id="svg"></svg></div>
+</div>
+
+<script>
+const EW = 236;
+
+const EMETA = {
+  app_user:              { n:'AppUser',             t:'app_user',             c:'cu', x:20,   y:180 },
+  book:                  { n:'Book',                t:'book',                 c:'cb', x:800,  y:20  },
+  category:              { n:'Category',            t:'category',             c:'cg', x:1150, y:20  },
+  cart:                  { n:'Cart',                t:'cart',                 c:'cs', x:20,   y:500 },
+  cart_item:             { n:'CartItem',            t:'cart_item',            c:'cs', x:356,  y:470 },
+  book_order:            { n:'BookOrder',           t:'book_order',           c:'co', x:800,  y:440 },
+  order_item:            { n:'OrderItem',           t:'order_item',           c:'co', x:1150, y:440 },
+  wallet:                { n:'Wallet',              t:'wallet',               c:'cw', x:20,   y:760 },
+  wallet_transaction:    { n:'WalletTransaction',   t:'wallet_transaction',   c:'cw', x:356,  y:750 },
+  top_up_code:           { n:'TopUpCode',           t:'top_up_code',          c:'ct', x:1490, y:650 },
+  top_up_code_usage:     { n:'TopUpCodeUsage',      t:'top_up_code_usage',    c:'ct', x:1150, y:650 },
+  revenue_share:         { n:'RevenueShare',        t:'revenue_share',        c:'cr', x:800,  y:860 },
+  platform_wallet:       { n:'PlatformWallet',      t:'platform_wallet',      c:'cp', x:20,   y:1080},
+  platform_transaction:  { n:'PlatformTransaction', t:'platform_transaction', c:'cp', x:356,  y:1050},
+  publisher_wallet:      { n:'PublisherWallet',     t:'publisher_wallet',     c:'cP', x:1150, y:1080},
+  publisher_transaction: { n:'PublisherTransaction',t:'publisher_transaction',c:'cP', x:1490, y:1050},
+};
+
+const EFIELDS = {
+  app_user: [
+    {k:'pk',n:'id',t:'BIGINT'},
+    {k:'uk',n:'username',t:'VARCHAR(80)'},
+    {n:'email',t:'VARCHAR(120)'},
+    {n:'password',t:'VARCHAR(200)'},
+    {n:'role',t:'USER / SELLER / ADMIN'},
+    {n:'created_at',t:'TIMESTAMP'},
+  ],
+  book: [
+    {k:'pk',n:'id',t:'BIGINT'},
+    {n:'title',t:'VARCHAR(200)'},
+    {n:'author',t:'VARCHAR(100)'},
+    {n:'description',t:'VARCHAR(1000)'},
+    {n:'price',t:'DECIMAL(10,2)'},
+    {k:'fk',n:'category_id',t:'FK → category'},
+    {k:'fk',n:'seller_id',t:'FK → app_user'},
+    {n:'cover_image',t:'VARCHAR(500)'},
+    {n:'content',t:'TEXT'},
+    {n:'status',t:'draft / active / …'},
+    {n:'created_at',t:'TIMESTAMP'},
+    {n:'updated_at',t:'TIMESTAMP'},
+  ],
+  category: [
+    {k:'pk',n:'id',t:'BIGINT'},
+    {n:'name',t:'VARCHAR(100)'},
+    {n:'description',t:'VARCHAR(500)'},
+  ],
+  cart: [
+    {k:'pk',n:'id',t:'BIGINT'},
+    {k:'fk',n:'user_id',t:'FK → app_user (UK)'},
+    {n:'created_at',t:'TIMESTAMP'},
+    {n:'updated_at',t:'TIMESTAMP'},
+  ],
+  cart_item: [
+    {k:'pk',n:'id',t:'BIGINT'},
+    {k:'fk',n:'cart_id',t:'FK → cart'},
+    {k:'fk',n:'book_id',t:'FK → book'},
+    {n:'quantity',t:'INT (= 1)'},
+    {k:'uk',n:'—',t:'UNIQUE(cart_id, book_id)'},
+  ],
+  book_order: [
+    {k:'pk',n:'id',t:'BIGINT'},
+    {k:'fk',n:'user_id',t:'FK → app_user'},
+    {n:'total_price',t:'DECIMAL(10,2)'},
+    {n:'status',t:'PENDING / COMPLETED / …'},
+    {n:'created_at',t:'TIMESTAMP'},
+    {n:'updated_at',t:'TIMESTAMP'},
+  ],
+  order_item: [
+    {k:'pk',n:'id',t:'BIGINT'},
+    {k:'fk',n:'order_id',t:'FK → book_order'},
+    {k:'fk',n:'book_id',t:'FK → book'},
+    {n:'price',t:'DECIMAL(10,2)'},
+    {n:'quantity',t:'INT'},
+  ],
+  wallet: [
+    {k:'pk',n:'id',t:'BIGINT'},
+    {k:'fk',n:'user_id',t:'FK → app_user (UK)'},
+    {n:'type',t:'user / seller'},
+    {n:'balance',t:'DECIMAL(12,2)'},
+    {n:'created_at',t:'TIMESTAMP'},
+  ],
+  wallet_transaction: [
+    {k:'pk',n:'id',t:'BIGINT'},
+    {k:'fk',n:'wallet_id',t:'FK → wallet'},
+    {n:'type',t:'TOPUP / PURCHASE / DEPOSIT'},
+    {n:'amount',t:'DECIMAL(10,2)'},
+    {n:'description',t:'VARCHAR(255)'},
+    {k:'fk',n:'order_id',t:'FK → book_order (null)'},
+    {k:'fk',n:'book_id',t:'FK → book (null)'},
+    {n:'created_at',t:'TIMESTAMP'},
+  ],
+  top_up_code: [
+    {k:'pk',n:'id',t:'BIGINT'},
+    {k:'uk',n:'code',t:'VARCHAR(50) UNIQUE'},
+    {n:'amount',t:'DECIMAL(10,2)'},
+    {n:'created_at',t:'TIMESTAMP'},
+  ],
+  top_up_code_usage: [
+    {k:'pk',n:'id',t:'BIGINT'},
+    {k:'fk',n:'code_id',t:'FK → top_up_code'},
+    {k:'fk',n:'user_id',t:'FK → app_user'},
+    {n:'used_at',t:'TIMESTAMP'},
+    {k:'uk',n:'—',t:'UNIQUE(code_id, user_id)'},
+  ],
+  revenue_share: [
+    {k:'pk',n:'id',t:'BIGINT'},
+    {k:'fk',n:'order_id',t:'FK → book_order'},
+    {k:'fk',n:'book_id',t:'FK → book'},
+    {k:'fk',n:'publisher_id',t:'FK → app_user'},
+    {n:'total_points',t:'DECIMAL(12,2)'},
+    {n:'platform_share',t:'DECIMAL(12,2) · 30%'},
+    {n:'publisher_share',t:'DECIMAL(12,2) · 70%'},
+    {n:'settled',t:'BOOLEAN'},
+    {n:'created_at',t:'TIMESTAMP'},
+    {n:'settled_at',t:'TIMESTAMP (null)'},
+  ],
+  platform_wallet: [
+    {k:'pk',n:'id',t:'BIGINT'},
+    {n:'balance_points',t:'DECIMAL(12,2)'},
+  ],
+  platform_transaction: [
+    {k:'pk',n:'id',t:'BIGINT'},
+    {k:'fk',n:'platform_wallet_id',t:'FK → platform_wallet'},
+    {n:'type',t:'revenue_share'},
+    {n:'amount_points',t:'DECIMAL(12,2)'},
+    {k:'fk',n:'order_id',t:'FK → book_order'},
+    {n:'created_at',t:'TIMESTAMP'},
+  ],
+  publisher_wallet: [
+    {k:'pk',n:'id',t:'BIGINT'},
+    {k:'fk',n:'publisher_id',t:'FK → app_user (UK)'},
+    {n:'balance_points',t:'DECIMAL(12,2)'},
+  ],
+  publisher_transaction: [
+    {k:'pk',n:'id',t:'BIGINT'},
+    {k:'fk',n:'publisher_id',t:'FK → publisher_wallet'},
+    {n:'type',t:'revenue_share'},
+    {n:'amount_points',t:'DECIMAL(12,2)'},
+    {k:'fk',n:'order_id',t:'FK → book_order'},
+    {n:'created_at',t:'TIMESTAMP'},
+  ],
+};
+
+const canvas = document.getElementById('canvas');
+
+// 拖曳狀態管理
+let draggedEl = null;
+let draggedId = null;
+let startX, startY, initialX, initialY;
+
+function bindDrag(el, id) {
+  const header = el.querySelector('.eh');
+  header.addEventListener('mousedown', (e) => {
+    draggedEl = el;
+    draggedId = id;
+    startX = e.clientX;
+    startY = e.clientY;
+    initialX = EMETA[id].x;
+    initialY = EMETA[id].y;
+    el.classList.add('dragging');
+  });
+}
+
+document.addEventListener('mousemove', (e) => {
+  if (!draggedEl) return;
+  const dx = e.clientX - startX;
+  const dy = e.clientY - startY;
+  EMETA[draggedId].x = initialX + dx;
+  EMETA[draggedId].y = initialY + dy;
+  draggedEl.style.left = EMETA[draggedId].x + 'px';
+  draggedEl.style.top = EMETA[draggedId].y + 'px';
+  drawAllRels(); // 拖曳時即時重繪
+});
+
+document.addEventListener('mouseup', () => {
+  if (draggedEl) {
+    draggedEl.classList.remove('dragging');
+    draggedEl = null;
+    draggedId = null;
+  }
+});
+
+function renderEntity(id) {
+  const def = EMETA[id];
+  const div = document.createElement('div');
+  div.className = 'entity'; div.id = 'e-' + id;
+  div.style.left = def.x + 'px'; div.style.top = def.y + 'px';
+  let html = `<div class="eh ${def.c}"><span class="en">${def.n}</span><span class="et">${def.t}</span></div><div class="ef">`;
+  for (const f of (EFIELDS[id] || [])) {
+    if (f.n === '—' && f.k === 'uk') {
+      html += `<div class="fr fnote">🔒 ${f.t}</div>`;
+    } else {
+      const bd = f.k === 'pk' ? '<span class="b pk">PK</span>'
+               : f.k === 'fk' ? '<span class="b fk">FK</span>'
+               : f.k === 'uk' ? '<span class="b uk">UK</span>'
+               : '<span class="eb"></span>';
+      html += `<div class="fr">${bd}<span class="fn">${f.n}</span><span class="ft">${f.t}</span></div>`;
+    }
+  }
+  html += '</div>';
+  div.innerHTML = html;
+  canvas.appendChild(div);
+  bindDrag(div, id); // 綁定拖曳功能
+}
+
+Object.keys(EMETA).forEach(renderEntity);
+
+function bnd(id) {
+  const e = EMETA[id], el = document.getElementById('e-' + id);
+  return { x: e.x, y: e.y, w: el.offsetWidth || EW, h: el.offsetHeight || 80 };
+}
+
+function cp(id, side, off = 0.5) {
+  const b = bnd(id);
+  if (side === 'L') return [b.x,       b.y + b.h * off];
+  if (side === 'R') return [b.x + b.w, b.y + b.h * off];
+  if (side === 'T') return [b.x + b.w * off, b.y];
+  if (side === 'B') return [b.x + b.w * off, b.y + b.h];
+}
+
+const COL = {
+  app_user:'#c0392b', book:'#2471a3', cart:'#229954', cart_item:'#229954',
+  book_order:'#7d3c98', wallet:'#148f77', top_up_code:'#ba6a10', top_up_code_usage:'#ba6a10',
+  platform_wallet:'#2c3e50', publisher_wallet:'#1a6b4a', revenue_share:'#cb4335',
+};
+
+// 移除寫死的座標，改為完全動態的路由
+function makePath(r) {
+  const [x1,y1] = cp(r.from, r.fS, r.fO);
+  const [x2,y2] = cp(r.to,   r.tS, r.tO);
+  
+  // 動態計算中繼點
+  const mx = (x1 + x2) / 2;
+  const my = (y1 + y2) / 2;
+
+  switch (r.rt) {
+    case 'HVH': return `M${x1},${y1} H${mx} V${y2} H${x2}`;
+    case 'VHV': return `M${x1},${y1} V${my} H${x2} V${y2}`;
+    case 'HV':  return `M${x1},${y1} H${x2} V${y2}`;
+    case 'VH':  return `M${x1},${y1} V${y2} H${x2}`;
+    default:    return `M${x1},${y1} H${mx} V${y2} H${x2}`;
+  }
+}
+
+// 移除了寫死的 mx, my, pfn 以適應動態拖曳
+const RELS = [
+  { from:'app_user', fS:'R', fO:.2,  to:'book',                tS:'L', tO:.35, rt:'HVH', lbl:'sells',       card:'1:N' },
+  { from:'app_user', fS:'B', fO:.2,  to:'cart',                tS:'T', tO:.2,  rt:'VH',  lbl:'has',         card:'1:1' },
+  { from:'app_user', fS:'R', fO:.5,  to:'book_order',          tS:'L', tO:.5,  rt:'HVH', lbl:'places',      card:'1:N' },
+  { from:'app_user', fS:'L', fO:.65, to:'wallet',              tS:'L', tO:.5,  rt:'HVH', lbl:'owns',        card:'1:1' },
+  { from:'app_user', fS:'R', fO:.72, to:'top_up_code_usage',  tS:'L', tO:.5,  rt:'HVH', lbl:'uses',        card:'1:N' },
+  { from:'app_user', fS:'R', fO:.84, to:'publisher_wallet',   tS:'L', tO:.5,  rt:'HVH', lbl:'earns',       card:'1:1' },
+  { from:'app_user', fS:'R', fO:.95, to:'revenue_share',      tS:'L', tO:.5,  rt:'HVH', lbl:'publishes',   card:'1:N' },
+  { from:'book',  fS:'R', fO:.25, to:'category',    tS:'L', tO:.5, rt:'HVH', lbl:'belongs to', card:'N:1' },
+  { from:'book',  fS:'B', fO:.3,  to:'cart_item',   tS:'T', tO:.65,rt:'VHV', lbl:'in cart',    card:'1:N' },
+  { from:'book',  fS:'R', fO:.45, to:'order_item',  tS:'T', tO:.5, rt:'HV',  lbl:'in order',   card:'1:N' },
+  { from:'cart',  fS:'R', fO:.5,  to:'cart_item',   tS:'L', tO:.75,rt:'HVH', lbl:'contains',   card:'1:N' },
+  { from:'book_order', fS:'R', fO:.5,  to:'order_item',          tS:'L', tO:.5, rt:'HVH', lbl:'contains',    card:'1:N' },
+  { from:'book_order', fS:'B', fO:.3,  to:'wallet_transaction',  tS:'T', tO:.7, rt:'VHV', lbl:'records',     card:'1:N' },
+  { from:'book_order', fS:'B', fO:.5,  to:'revenue_share',       tS:'T', tO:.5, rt:'VH',  lbl:'generates',   card:'1:N' },
+  { from:'book_order', fS:'L', fO:.8,  to:'platform_transaction',tS:'T', tO:.8, rt:'VHV', lbl:'credits',     card:'1:N' },
+  { from:'book_order', fS:'R', fO:.8,  to:'publisher_transaction',tS:'T',tO:.5, rt:'VHV', lbl:'credits',     card:'1:N' },
+  { from:'wallet', fS:'R', fO:.5, to:'wallet_transaction', tS:'L', tO:.5, rt:'HVH', lbl:'records', card:'1:N' },
+  { from:'top_up_code', fS:'L', fO:.5, to:'top_up_code_usage', tS:'R', tO:.5, rt:'HVH', lbl:'used in', card:'1:N' },
+  { from:'platform_wallet', fS:'R', fO:.5, to:'platform_transaction', tS:'L', tO:.5, rt:'HVH', lbl:'records', card:'1:N' },
+  { from:'publisher_wallet', fS:'R', fO:.5, to:'publisher_transaction', tS:'L', tO:.5, rt:'HVH', lbl:'records', card:'1:N' },
+  { from:'revenue_share', fS:'L', fO:.5, to:'platform_wallet', tS:'T', tO:.5, rt:'HV', lbl:'settled into', card:'N:1' },
+  { from:'revenue_share', fS:'R', fO:.5, to:'publisher_wallet', tS:'T', tO:.5, rt:'HV', lbl:'settled into', card:'N:1' },
+];
+
+const svg = document.getElementById('svg');
+let defsCached = null;
+
+function getDefs() {
+  if (defsCached) return defsCached;
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+  const done = new Set();
+  RELS.forEach(r => {
+    if (done.has(r.from)) return; done.add(r.from);
+    const col = COL[r.from] || '#999';
+
+    const am = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+    am.setAttribute('id',         `arr-${r.from}`);
+    am.setAttribute('markerWidth','10'); am.setAttribute('markerHeight','7');
+    am.setAttribute('refX',       '9'); am.setAttribute('refY',       '3.5');
+    am.setAttribute('orient',     'auto');
+    const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    poly.setAttribute('points', '0 0, 10 3.5, 0 7'); poly.setAttribute('fill', col);
+    am.appendChild(poly); defs.appendChild(am);
+
+    const tm = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+    tm.setAttribute('id',         `tick-${r.from}`);
+    tm.setAttribute('markerWidth','8'); tm.setAttribute('markerHeight','10');
+    tm.setAttribute('refX',       '1'); tm.setAttribute('refY',       '5');
+    tm.setAttribute('orient',     'auto');
+    const tl = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    tl.setAttribute('x1','1'); tl.setAttribute('y1','1'); tl.setAttribute('x2','1'); tl.setAttribute('y2','9');
+    tl.setAttribute('stroke', col); tl.setAttribute('stroke-width','1.8');
+    tm.appendChild(tl); defs.appendChild(tm);
+  });
+  defsCached = defs;
+  return defs;
+}
+
+function pathMid(d) {
+  const segs = [];
+  let cx = 0, cy = 0;
+  const re = /([MLHVmlhv])\s*([-\d.]+)(?:\s*,\s*([-\d.]+))?/g;
+  let m;
+  while ((m = re.exec(d)) !== null) {
+    const [, type, a, b] = m;
+    const px = cx, py = cy;
+    if      (type==='M'||type==='m') { cx=+a; cy=+b; }
+    else if (type==='L'||type==='l') { cx=+a; cy=+b; }
+    else if (type==='H'||type==='h') { cx=+a; }
+    else if (type==='V'||type==='v') { cy=+a; }
+    if (type!=='M'&&type!=='m') segs.push([px,py,cx,cy]);
+  }
+  let total = segs.reduce((s,[x1,y1,x2,y2]) => s + Math.abs(x2-x1)+Math.abs(y2-y1), 0);
+  let half = total/2, acc = 0;
+  for (const [x1,y1,x2,y2] of segs) {
+    const len = Math.abs(x2-x1)+Math.abs(y2-y1);
+    if (acc+len >= half) {
+      const t = len === 0 ? 0 : (half-acc)/len;
+      return [x1+(x2-x1)*t, y1+(y2-y1)*t];
+    }
+    acc += len;
+  }
+  return [cx, cy];
+}
+
+function drawRel(r) {
+  const d   = makePath(r);
+  const col = COL[r.from] || '#999';
+
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', d); path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', col); path.setAttribute('stroke-width', '1.6');
+  path.setAttribute('stroke-opacity', '0.82');
+
+  if (r.card === '1:1') path.setAttribute('stroke-dasharray', '4,3');
+  else path.setAttribute('stroke-dasharray', '6,3');
+
+  path.setAttribute('marker-end', `url(#arr-${r.from})`);
+  if (r.card === '1:1') path.setAttribute('marker-start', `url(#tick-${r.from})`);
+  svg.appendChild(path);
+
+  const [lx, ly] = pathMid(d);
+  const bg  = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  txt.setAttribute('x', lx); txt.setAttribute('y', ly-4);
+  txt.setAttribute('text-anchor', 'middle');
+  txt.setAttribute('font-size', '9'); txt.setAttribute('font-weight', '600');
+  txt.setAttribute('fill', col);
+  txt.textContent = r.card + ' ' + r.lbl;
+  
+  svg.appendChild(bg); svg.appendChild(txt);
+
+  // 同步精算背景標籤大小 (避免拖曳時的非同步延遲)
+  const bbWidth = txt.textContent.length * 5.5 + 4; // 近似寬度
+  bg.setAttribute('x', lx - bbWidth/2);
+  bg.setAttribute('y', ly - 13);
+  bg.setAttribute('width', bbWidth);
+  bg.setAttribute('height', 12);
+  bg.setAttribute('fill', 'white');
+  bg.setAttribute('fill-opacity', '0.92');
+  bg.setAttribute('rx', '2');
+  svg.insertBefore(bg, txt);
+}
+
+function drawAllRels() {
+  svg.replaceChildren(getDefs()); // 快速清空並重加 defs
+  RELS.forEach(drawRel);
+}
+
+window.addEventListener('load', () => {
+  svg.setAttribute('width',  canvas.offsetWidth);
+  svg.setAttribute('height', canvas.offsetHeight);
+  drawAllRels();
+});
+</script>
+</body>
+</html>
