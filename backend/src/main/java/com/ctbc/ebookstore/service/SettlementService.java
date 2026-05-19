@@ -55,16 +55,26 @@ public class SettlementService {
     /**
      * 執行結算：將所有未結算的 revenue_share 入帳至平台錢包與出版商錢包。
      */
+    /**
+     * 執行結算。
+     * 防止雙重結算的三層鎖定策略：
+     *  1. findBySettledFalseForUpdate()  → 鎖定所有待結算記錄
+     *     第二個並發請求阻塞，第一筆 commit 後看到空列表直接回傳
+     *  2. findAllForUpdate()             → 鎖定平台錢包
+     *  3. findByPublisherForUpdate()     → 鎖定各出版商錢包
+     */
     @Transactional
     public SettlementSummary settle() {
-        List<RevenueShare> pending = revenueShareRepo.findBySettledFalseOrderByCreatedAtDesc();
+        // 以 FOR UPDATE 讀取，同時鎖住所有待結算記錄
+        List<RevenueShare> pending = revenueShareRepo.findBySettledFalseForUpdate();
 
         if (pending.isEmpty()) {
             return new SettlementSummary(0, BigDecimal.ZERO, BigDecimal.ZERO, "無待結算項目");
         }
 
-        // 取得（或建立）平台錢包
-        PlatformWallet platformWallet = platformWalletRepo.findFirstBy()
+        // 鎖定（或建立）平台錢包
+        PlatformWallet platformWallet = platformWalletRepo.findAllForUpdate()
+                .stream().findFirst()
                 .orElseGet(() -> platformWalletRepo.save(new PlatformWallet(BigDecimal.ZERO)));
 
         BigDecimal totalPlatform = BigDecimal.ZERO;
@@ -81,9 +91,9 @@ public class SettlementService {
                     platformWallet, "revenue_share",
                     rs.getPlatformSharePoints(), order));
 
-            // ── 出版商錢包入帳 ────────────────────────────────────
+            // ── 出版商錢包入帳（FOR UPDATE 鎖定）────────────────────
             PublisherWallet pubWallet = publisherWalletRepo
-                    .findByPublisher(rs.getPublisher())
+                    .findByPublisherForUpdate(rs.getPublisher())
                     .orElseGet(() -> publisherWalletRepo.save(
                             new PublisherWallet(rs.getPublisher())));
             pubWallet.setBalancePoints(

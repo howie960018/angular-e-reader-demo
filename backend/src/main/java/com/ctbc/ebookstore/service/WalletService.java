@@ -5,6 +5,7 @@ import com.ctbc.ebookstore.dto.PaymentResult;
 import com.ctbc.ebookstore.exception.BadRequestException;
 import com.ctbc.ebookstore.exception.ResourceNotFoundException;
 import com.ctbc.ebookstore.repository.*;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,23 +69,33 @@ public class WalletService {
         return transactionRepo.findByWalletOrderByCreatedAtDesc(wallet);
     }
 
-    /** Admin 手動入款（DEPOSIT 類型，amount 正數） */
+    /**
+     * 取得錢包並加 FOR UPDATE 鎖（確保先存在再鎖定）。
+     * 必須在 @Transactional 方法內呼叫，鎖隨 transaction 釋放。
+     */
+    private Wallet getWalletLocked(AppUser user) {
+        getOrCreateWallet(user); // 確保存在
+        return walletRepo.findByUserForUpdate(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Wallet not found"));
+    }
+
+    /** Admin 手動入款（DEPOSIT） */
     @Transactional
     public Wallet deposit(AppUser user, BigDecimal amount, String description) {
-        Wallet wallet = getUserWallet(user);
+        Wallet wallet = getWalletLocked(user);
         wallet.setBalance(wallet.getBalance().add(amount));
         walletRepo.save(wallet);
         transactionRepo.save(new WalletTransaction(wallet, "DEPOSIT", amount, description));
         return wallet;
     }
 
-    /** 使用者直接儲值（topup，amount 正數） */
+    /** 直接儲值（TOPUP，正數） */
     @Transactional
     public Wallet topup(AppUser user, BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BadRequestException("儲值點數必須大於 0");
         }
-        Wallet wallet = getOrCreateWallet(user);
+        Wallet wallet = getWalletLocked(user);
         wallet.setBalance(wallet.getBalance().add(amount));
         walletRepo.save(wallet);
         transactionRepo.save(new WalletTransaction(wallet, "TOPUP", amount, "直接儲值"));
@@ -92,12 +103,12 @@ public class WalletService {
     }
 
     /**
-     * 購買扣款（不帶 order 參照，供舊版相容呼叫）。
+     * 購買扣款（不帶 order 參照，舊版相容呼叫）。
      * amount 傳入正數，記錄時存為負數。
      */
     @Transactional
     public void purchase(AppUser user, BigDecimal amount, String description) {
-        Wallet wallet = getUserWallet(user);
+        Wallet wallet = getWalletLocked(user);
         if (wallet.getBalance().compareTo(amount) < 0) {
             throw new BadRequestException("錢包餘額不足");
         }
@@ -112,7 +123,7 @@ public class WalletService {
      */
     @Transactional
     public void purchase(AppUser user, BigDecimal amount, BookOrder order) {
-        Wallet wallet = getUserWallet(user);
+        Wallet wallet = getWalletLocked(user);
         if (wallet.getBalance().compareTo(amount) < 0) {
             throw new BadRequestException("錢包餘額不足");
         }
@@ -129,6 +140,13 @@ public class WalletService {
         purchase(user, amount, description);
     }
 
+    /**
+     * 兌換碼儲值。
+     * 防護層：
+     *  1. existsBy 快速排除已明確使用過的情況
+     *  2. DB UNIQUE(code_id, user_id) 是最終防線
+     *  3. 捕捉 DataIntegrityViolationException 處理極端並發
+     */
     @Transactional
     public PaymentResult useTopUpCode(AppUser user, String code) {
         TopUpCode topUpCode = topUpCodeRepo.findByCode(code).orElse(null);
@@ -139,9 +157,15 @@ public class WalletService {
             return new PaymentResult(false, "您已經使用過此兌換碼");
         }
 
-        usageRepo.save(new TopUpCodeUsage(topUpCode, user));
+        try {
+            usageRepo.save(new TopUpCodeUsage(topUpCode, user));
+            usageRepo.flush(); // 立即觸發 INSERT，讓 unique constraint 在本 tx 內生效
+        } catch (DataIntegrityViolationException e) {
+            // 並發情境下另一個 request 搶先插入，此筆視為重複
+            return new PaymentResult(false, "您已經使用過此兌換碼");
+        }
 
-        Wallet wallet = getOrCreateWallet(user);
+        Wallet wallet = getWalletLocked(user);
         wallet.setBalance(wallet.getBalance().add(topUpCode.getAmount()));
         walletRepo.save(wallet);
         transactionRepo.save(new WalletTransaction(wallet, "TOPUP",

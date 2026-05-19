@@ -10,6 +10,7 @@ import com.ctbc.ebookstore.repository.BookRepository;
 import com.ctbc.ebookstore.repository.CartItemRepository;
 import com.ctbc.ebookstore.repository.CartRepository;
 import com.ctbc.ebookstore.repository.OrderItemRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +39,18 @@ public class CartService {
         });
     }
 
+    /**
+     * 取得購物車並加 FOR UPDATE 鎖，供結帳流程使用。
+     * 確保同一用戶並發結帳時，第二個請求拿到鎖後會看到空購物車並拋出錯誤。
+     * 必須在 @Transactional 方法內呼叫。
+     */
+    public Cart getOrCreateCartForUpdate(AppUser user) {
+        getOrCreateCart(user); // 確保 cart row 存在
+        return cartRepo.findByUserForUpdate(user)
+                .orElseThrow(() -> new com.ctbc.ebookstore.exception.ResourceNotFoundException(
+                        "Cart not found for user: " + user.getId()));
+    }
+
     @Transactional
     public Cart addItem(AppUser user, Long bookId, int quantity) {
         Cart cart = getOrCreateCart(user);
@@ -58,7 +71,14 @@ public class CartService {
 
         CartItem item = new CartItem(cart, book, 1);
         cart.getItems().add(item);
-        cartItemRepo.save(item);
+        try {
+            cartItemRepo.save(item);
+            cartItemRepo.flush(); // 立即觸發 INSERT，讓 UNIQUE(cart_id, book_id) 在 tx 內生效
+        } catch (DataIntegrityViolationException e) {
+            // 並發請求搶先插入同一本書，視為已在購物車中，靜默成功
+            cart.getItems().remove(item);
+            return cartRepo.findByUser(user).orElse(cart);
+        }
         cart.setUpdatedAt(LocalDateTime.now());
         return cartRepo.save(cart);
     }

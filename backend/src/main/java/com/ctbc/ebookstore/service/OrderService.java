@@ -42,7 +42,8 @@ public class OrderService {
 
     @Transactional
     public BookOrder createFromCart(AppUser user) {
-        Cart cart = cartService.getOrCreateCart(user);
+        // FOR UPDATE 鎖：防止同一用戶並發結帳產生重複訂單
+        Cart cart = cartService.getOrCreateCartForUpdate(user);
 
         if (cart.getItems().isEmpty()) {
             throw new BadRequestException("Cart is empty");
