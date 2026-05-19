@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/books")
 public class BookContentController {
 
-    private static final int PREVIEW_LENGTH = 1500;
+    private static final int PREVIEW_LENGTH = 100;
 
     private final BookService bookService;
     private final AppUserService userService;
