@@ -1,0 +1,34 @@
+<div class="checkout-container">
+  <h1>訂單結帳</h1>
+  <div class="checkout-content">
+    <div class="order-summary">
+      <h2>訂單明細</h2>
+      <div *ngIf="cart && cart.items.length > 0" class="items">
+        <div *ngFor="let item of cart.items" class="item">
+          <span class="item-name">{{ item.book.title }} × {{ item.quantity }}</span>
+          <span class="item-price">{{ item.book.price * item.quantity }} 點</span>
+        </div>
+        <div class="total">
+          <span>總計：</span>
+          <span class="total-price">{{ getTotalPrice() }} 點</span>
+        </div>
+      </div>
+    </div>
+    <div class="payment-section">
+      <h2>付款方式</h2>
+      <div class="wallet-info">
+        <p>錢包餘額：<strong>{{ walletBalance }} 點</strong></p>
+        <div *ngIf="walletBalance < getTotalPrice()" class="insufficient-balance">
+          <p>⚠️ 餘額不足！還需要 {{ getTotalPrice() - walletBalance }} 點。</p>
+          <a href="/wallet">前往儲值</a>
+        </div>
+      </div>
+      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+      <button class="btn btn-primary" (click)="completeOrder()"
+        [disabled]="isProcessing || walletBalance < getTotalPrice()">
+        {{ isProcessing ? '處理中...' : '確認下單' }}
+      </button>
+      <button class="btn btn-secondary" (click)="goBack()" [disabled]="isProcessing">返回購物車</button>
+    </div>
+  </div>
+</div>

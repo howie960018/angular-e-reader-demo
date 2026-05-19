@@ -1,0 +1,61 @@
+<div class="book-detail-container">
+  <button class="back-btn" (click)="goBack()">← 返回書籍列表</button>
+  <div *ngIf="isLoading" class="loading"><p>載入中...</p></div>
+  <div *ngIf="!isLoading && !book" class="not-found"><p>找不到此書籍</p></div>
+
+  <div *ngIf="!isLoading && book" class="book-detail">
+    <div class="book-cover">
+      <img [src]="book.coverImage" [alt]="book.title" />
+      <div *ngIf="isPurchased" class="purchased-badge">✅ 已購買</div>
+    </div>
+
+    <div class="book-content">
+      <h1>{{ book.title }}</h1>
+      <p class="author">作者：{{ book.author }}</p>
+      <p class="publisher">出版商：{{ book.sellerName }}</p>
+
+      <!-- 書籍狀態標籤 -->
+      <div class="status-badge" [class]="statusClass" *ngIf="book.status !== 'active'">
+        {{ statusLabel }}
+      </div>
+
+      <div class="description-section">
+        <h3>內容簡介</h3>
+        <p>{{ book.description }}</p>
+      </div>
+
+      <div class="price-section">
+        <span class="price">{{ book.price }} 點</span>
+      </div>
+
+      <!-- 按鈕區域 -->
+      <div class="actions">
+        <!-- 已購買 / seller / admin → 顯示「閱讀」 -->
+        <ng-container *ngIf="canRead">
+          <button class="btn btn-read-full" (click)="readBook()">📖 閱讀此書</button>
+        </ng-container>
+
+        <!-- 未購買 + active → 顯示「購買」 -->
+        <ng-container *ngIf="canPurchase">
+          <button class="btn btn-cart" (click)="addToCart()">加入購物車</button>
+          <button class="btn btn-primary" (click)="buyNow()">立即購買</button>
+        </ng-container>
+
+        <!-- 試閱按鈕（非 banned 書籍皆可試閱） -->
+        <button class="btn btn-read" (click)="readBook()" *ngIf="book.status !== 'banned' && !canRead">試閱</button>
+
+        <!-- 未登入提示 -->
+        <div *ngIf="!currentUser" class="login-prompt">
+          <p>請先 <a href="/login">登入</a> 才能購買</p>
+        </div>
+
+        <!-- 非 active 狀態提示 -->
+        <div *ngIf="currentUser && !canRead && book.status !== 'active'" class="status-notice">
+          <p *ngIf="book.status === 'draft'">此書尚未正式上架，暫無法購買。</p>
+          <p *ngIf="book.status === 'discontinued'">此書已由出版商停售，若已購買仍可閱讀。</p>
+          <p *ngIf="book.status === 'banned'">此書已依法強制下架，無法閱讀。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

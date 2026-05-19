@@ -1,0 +1,13 @@
+package com.ctbc.ebookstore.repository;
+
+import com.ctbc.ebookstore.bean.AppUser;
+import com.ctbc.ebookstore.bean.BookOrder;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface OrderRepository extends JpaRepository<BookOrder, Long> {
+    List<BookOrder> findByUser(AppUser user);
+    List<BookOrder> findByUserId(Long userId);
+    List<BookOrder> findAllByOrderByCreatedAtDesc();
+}

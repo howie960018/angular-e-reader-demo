@@ -1,0 +1,33 @@
+<div class="register-container">
+  <div class="register-form">
+    <h1>會員註冊</h1>
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+    <div class="form-group">
+      <label for="username">帳號：</label>
+      <input id="username" type="text" [(ngModel)]="registerForm.username" placeholder="請輸入帳號" [disabled]="isLoading" />
+    </div>
+    <div class="form-group">
+      <label for="email">電子信箱：</label>
+      <input id="email" type="email" [(ngModel)]="registerForm.email" placeholder="請輸入電子信箱" [disabled]="isLoading" />
+    </div>
+    <div class="form-group">
+      <label for="role">身份：</label>
+      <select [(ngModel)]="registerForm.role" id="role" [disabled]="isLoading">
+        <option [value]="UserRole.USER">一般用戶（買家）</option>
+        <option [value]="UserRole.SELLER">出版商（賣家）</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="password">密碼：</label>
+      <input id="password" type="password" [(ngModel)]="registerForm.password" placeholder="請輸入密碼" [disabled]="isLoading" />
+    </div>
+    <div class="form-group">
+      <label for="confirmPassword">確認密碼：</label>
+      <input id="confirmPassword" type="password" [(ngModel)]="registerForm.confirmPassword" placeholder="請再次輸入密碼" [disabled]="isLoading" />
+    </div>
+    <button class="btn btn-primary" (click)="register()" [disabled]="isLoading">
+      {{ isLoading ? '註冊中...' : '立即註冊' }}
+    </button>
+    <p class="login-link">已有帳號？<a (click)="goToLogin()">前往登入</a></p>
+  </div>
+</div>

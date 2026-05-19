@@ -1,0 +1,43 @@
+<div class="cart-container">
+  <h1>購物車</h1>
+  <div *ngIf="!cart || cart.items.length === 0" class="empty-cart">
+    <p>購物車是空的</p>
+    <button class="btn btn-primary" (click)="continueShopping()">繼續選購</button>
+  </div>
+
+  <div *ngIf="cart && cart.items.length > 0" class="cart-content">
+    <table class="cart-table">
+      <thead>
+        <tr>
+          <th>書籍</th>
+          <th>單價</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of cart.items" class="cart-item">
+          <td class="book-name">
+            <strong>{{ item.book.title }}</strong>
+            <p class="author">{{ item.book.author }}</p>
+          </td>
+          <td class="price">{{ item.book.price }} 點</td>
+          <td class="action">
+            <button class="btn btn-remove" (click)="removeItem(item.bookId)">移除</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="cart-summary">
+      <div class="summary-item">
+        <span>共 {{ cart.items.length }} 本電子書</span>
+      </div>
+      <div class="summary-item total">
+        <span>總計：</span>
+        <span>{{ getTotalPrice() }} 點</span>
+      </div>
+      <button class="btn btn-primary" (click)="checkout()">前往結帳</button>
+      <button class="btn btn-secondary" (click)="continueShopping()">繼續選購</button>
+    </div>
+  </div>
+</div>

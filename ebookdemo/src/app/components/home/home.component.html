@@ -1,0 +1,38 @@
+<div class="home-container">
+  <div class="search-bar">
+    <input type="text" [(ngModel)]="searchText" placeholder="搜尋書名或作者..." class="search-input" />
+  </div>
+  <div class="content">
+    <aside class="sidebar">
+      <h3>書籍分類</h3>
+      <button [class.active]="selectedCategory === ''" (click)="filterByCategory('')" class="category-btn">全部書籍</button>
+      <button *ngFor="let category of categories" [class.active]="selectedCategory === category.id"
+        (click)="filterByCategory(category.id)" class="category-btn">{{ category.name }}</button>
+    </aside>
+    <main class="books-grid">
+      <h2>{{ pageTitle }}</h2>
+      <div *ngIf="filteredBooks.length === 0" class="no-books"><p>查無書籍</p></div>
+      <div class="books-container">
+        <div *ngFor="let book of filteredBooks" class="book-card">
+          <div class="book-image">
+            <img [src]="book.coverImage" [alt]="book.title"
+              (error)="$any($event.target).src='https://placehold.co/200x300?text=No+Image'" />
+          </div>
+          <div class="book-info">
+            <h3>{{ book.title }}</h3>
+            <p class="author">作者：{{ book.author }}</p>
+            <p class="description">{{ book.description }}</p>
+            <p class="seller">出版商：{{ book.sellerName }}</p>
+            <div class="book-footer">
+              <span class="price">{{ book.price }} 點</span>
+              <div class="actions">
+                <button class="btn btn-view" (click)="viewBook(book.id)">查看詳情</button>
+                <button class="btn btn-cart" (click)="addToCart(book)">加入購物車</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

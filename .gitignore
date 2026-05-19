@@ -1,0 +1,32 @@
+# ── Maven / Spring Boot ──────────────────────────────
+backend/target/
+backend/.mvn/
+*.class
+*.jar
+*.war
+
+# ── Angular / Node ──────────────────────────────────
+ebookdemo/node_modules/
+ebookdemo/dist/
+ebookdemo/.angular/
+ebookdemo/coverage/
+ebookdemo/.sass-cache/
+npm-debug.log
+yarn-error.log
+
+# ── IDE ─────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+
+# ── Claude Code ─────────────────────────────────────
+.claude/
+
+# ── OS ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db

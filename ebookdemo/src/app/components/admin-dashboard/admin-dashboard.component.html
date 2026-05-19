@@ -1,0 +1,314 @@
+<div class="admin-dashboard">
+  <h1>管理後台</h1>
+
+  <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+  <div class="tabs">
+    <button [class.active]="activeTab === 'books'" (click)="switchTab('books'); cancelEditBook()" class="tab-btn">
+      書籍管理（{{ books.length }}）
+    </button>
+    <button [class.active]="activeTab === 'orders'" (click)="switchTab('orders'); cancelEditOrder()" class="tab-btn">
+      訂單管理（{{ orders.length }}）
+    </button>
+    <button [class.active]="activeTab === 'categories'" (click)="switchTab('categories'); cancelEditCategory()" class="tab-btn">
+      分類管理（{{ categories.length }}）
+    </button>
+    <button [class.active]="activeTab === 'topupcodes'" (click)="switchTab('topupcodes')" class="tab-btn">
+      儲值碼管理（{{ topUpCodes.length }}）
+    </button>
+    <button [class.active]="activeTab === 'settlement'" (click)="switchTab('settlement')" class="tab-btn tab-btn-finance">
+      金流結算（{{ pendingShares.length }}）
+    </button>
+    <button [class.active]="activeTab === 'wallet'" (click)="switchTab('wallet')" class="tab-btn tab-btn-finance">
+      金流錢包
+    </button>
+  </div>
+
+  <!-- ── 書籍管理 ── -->
+  <div *ngIf="activeTab === 'books'" class="tab-content">
+    <h2>書籍管理</h2>
+
+    <div *ngIf="editingBook" class="form-card edit-card">
+      <h3>編輯書籍：{{ editingBook.title }}</h3>
+      <div class="form-grid">
+        <div class="form-group"><label>書名</label><input type="text" [(ngModel)]="editBook.title" /></div>
+        <div class="form-group"><label>作者</label><input type="text" [(ngModel)]="editBook.author" /></div>
+        <div class="form-group"><label>售價（點）</label><input type="number" [(ngModel)]="editBook.price" min="0" /></div>
+        <div class="form-group">
+          <label>商品狀態</label>
+          <select [(ngModel)]="editBook.status">
+            <option *ngFor="let s of allStatuses" [value]="s.value">{{ s.label }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>分類</label>
+          <select [(ngModel)]="editBook.categoryId">
+            <option value="">請選擇</option>
+            <option *ngFor="let cat of allCategories" [value]="cat.id">{{ cat.name }}</option>
+          </select>
+        </div>
+        <div class="form-group"><label>封面圖片網址</label><input type="text" [(ngModel)]="editBook.coverImage" /></div>
+        <div class="form-group full-width"><label>簡介</label><textarea [(ngModel)]="editBook.description" rows="2"></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" (click)="saveEditBook()">儲存</button>
+        <button class="btn btn-secondary" (click)="cancelEditBook()">取消</button>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>書名</th><th>作者</th><th>售價</th><th>狀態</th><th>出版商</th><th>分類</th><th>操作</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let book of books">
+          <td>{{ book.title }}</td>
+          <td>{{ book.author }}</td>
+          <td>{{ book.price }} 點</td>
+          <td><span class="status-tag status-{{ book.status }}">{{ getBookStatusLabel(book.status) }}</span></td>
+          <td>{{ book.sellerName }}</td>
+          <td>{{ getCategoryName(book.categoryId) }}</td>
+          <td class="action-btns">
+            <button class="btn btn-edit" (click)="openEditBook(book)">編輯</button>
+            <button class="btn btn-delete" (click)="deleteBook(book.id)">刪除</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── 訂單管理 ── -->
+  <div *ngIf="activeTab === 'orders'" class="tab-content">
+    <h2>訂單管理</h2>
+    <table>
+      <thead>
+        <tr><th>訂單編號</th><th>用戶</th><th>品項數</th><th>總金額</th><th>狀態</th><th>下單時間</th><th>操作</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let order of orders">
+          <td>#{{ order.id }}</td>
+          <td>{{ order.userId }}</td>
+          <td>{{ order.items.length }}</td>
+          <td>{{ order.totalPrice }} 點</td>
+          <td>
+            <ng-container *ngIf="editingOrderId === order.id; else showStatus">
+              <select [(ngModel)]="editOrderStatus">
+                <option value="PENDING">處理中</option>
+                <option value="COMPLETED">已完成</option>
+                <option value="CANCELLED">已取消</option>
+              </select>
+            </ng-container>
+            <ng-template #showStatus>
+              <span [class]="'status ' + order.status.toLowerCase()">{{ getStatusLabel(order.status) }}</span>
+            </ng-template>
+          </td>
+          <td>{{ order.createdAt | date:'yyyy/MM/dd HH:mm' }}</td>
+          <td class="action-btns">
+            <ng-container *ngIf="editingOrderId === order.id; else orderActions">
+              <button class="btn btn-success" (click)="saveEditOrder()">儲存</button>
+              <button class="btn btn-secondary" (click)="cancelEditOrder()">取消</button>
+            </ng-container>
+            <ng-template #orderActions>
+              <button class="btn btn-edit" (click)="startEditOrder(order)">編輯狀態</button>
+              <button class="btn btn-delete" (click)="deleteOrder(order.id)">刪除</button>
+            </ng-template>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── 分類管理 ── -->
+  <div *ngIf="activeTab === 'categories'" class="tab-content">
+    <h2>分類管理</h2>
+    <div class="form-card" *ngIf="!editingCategory">
+      <h3>新增分類</h3>
+      <div class="form-row">
+        <input type="text" [(ngModel)]="newCategory.name" placeholder="分類名稱" />
+        <input type="text" [(ngModel)]="newCategory.description" placeholder="分類說明" />
+        <button class="btn btn-primary" (click)="addCategory()">新增</button>
+      </div>
+    </div>
+    <div class="form-card edit-card" *ngIf="editingCategory">
+      <h3>編輯分類</h3>
+      <div class="form-row">
+        <input type="text" [(ngModel)]="editCategory.name" placeholder="分類名稱" />
+        <input type="text" [(ngModel)]="editCategory.description" placeholder="分類說明" />
+        <button class="btn btn-primary" (click)="saveEditCategory()">儲存</button>
+        <button class="btn btn-secondary" (click)="cancelEditCategory()">取消</button>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>分類名稱</th><th>說明</th><th>操作</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let cat of categories">
+          <td>{{ cat.name }}</td>
+          <td>{{ cat.description }}</td>
+          <td class="action-btns">
+            <button class="btn btn-edit" (click)="openEditCategory(cat)">編輯</button>
+            <button class="btn btn-delete" (click)="deleteCategory(cat.id)">刪除</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── 儲值碼管理 ── -->
+  <div *ngIf="activeTab === 'topupcodes'" class="tab-content">
+    <h2>儲值碼管理</h2>
+    <p class="hint">每個用戶可使用每組代碼一次，不同用戶互不影響。</p>
+    <div class="form-card">
+      <h3>建立新儲值碼</h3>
+      <div class="form-row">
+        <input type="text" [(ngModel)]="newCode.code" placeholder="兌換碼（如：SUMMER2025）" style="text-transform:uppercase" />
+        <input type="number" [(ngModel)]="newCode.amount" placeholder="點數" min="1" />
+        <button class="btn btn-primary" (click)="createTopUpCode()">建立</button>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>兌換碼</th><th>點數</th><th>已使用人次</th><th>建立時間</th><th>操作</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let code of topUpCodes">
+          <td><strong>{{ code.code }}</strong></td>
+          <td>{{ code.amount }} 點</td>
+          <td>{{ code.usageCount }} 人</td>
+          <td>{{ code.createdAt | date:'yyyy/MM/dd' }}</td>
+          <td><button class="btn btn-delete" (click)="deleteTopUpCode(code.id)">刪除</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── 金流結算 ── -->
+  <div *ngIf="activeTab === 'settlement'" class="tab-content">
+    <h2>金流結算</h2>
+
+    <!-- 結算操作區 -->
+    <div class="settlement-action-bar">
+      <div class="pending-summary">
+        <span class="badge badge-pending">待結算 {{ pendingShares.length }} 筆</span>
+        <span class="badge badge-settled">已結算 {{ settledShares.length }} 筆</span>
+      </div>
+      <button class="btn btn-settle" (click)="executeSettlement()"
+              [disabled]="settling || pendingShares.length === 0">
+        {{ settling ? '結算中...' : '▶ 執行結算' }}
+      </button>
+    </div>
+
+    <!-- 結算結果通知 -->
+    <div *ngIf="settlementResult" class="settlement-result">
+      <h3>✅ 結算完成</h3>
+      <div class="result-grid">
+        <div class="result-item"><span>結算筆數</span><strong>{{ settlementResult.count }} 筆</strong></div>
+        <div class="result-item"><span>平台入帳</span><strong class="positive">+{{ settlementResult.totalPlatformPoints }} 點</strong></div>
+        <div class="result-item"><span>出版商合計入帳</span><strong class="positive">+{{ settlementResult.totalPublisherPoints }} 點</strong></div>
+      </div>
+      <p class="result-msg">{{ settlementResult.message }}</p>
+    </div>
+
+    <!-- 待結算 / 已結算切換 -->
+    <div class="sub-tabs">
+      <button [class.active]="settlementView === 'pending'" (click)="settlementView = 'pending'" class="sub-tab-btn">
+        待結算（{{ pendingShares.length }}）
+      </button>
+      <button [class.active]="settlementView === 'history'" (click)="settlementView = 'history'" class="sub-tab-btn">
+        結算歷史（{{ settledShares.length }}）
+      </button>
+    </div>
+
+    <!-- 待結算清單 -->
+    <div *ngIf="settlementView === 'pending'">
+      <div *ngIf="pendingShares.length === 0" class="empty-hint">目前無待結算項目</div>
+      <table *ngIf="pendingShares.length > 0">
+        <thead>
+          <tr><th>書名</th><th>出版商</th><th>訂單#</th><th>總金額</th><th>平台(30%)</th><th>出版商(70%)</th><th>建立時間</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let rs of pendingShares">
+            <td>{{ rs.bookTitle }}</td>
+            <td>{{ rs.publisherName }}</td>
+            <td>#{{ rs.orderId }}</td>
+            <td>{{ rs.totalPoints }} 點</td>
+            <td class="platform-share">{{ rs.platformSharePoints }} 點</td>
+            <td class="publisher-share">{{ rs.publisherSharePoints }} 點</td>
+            <td>{{ rs.createdAt | date:'yyyy/MM/dd HH:mm' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 結算歷史 -->
+    <div *ngIf="settlementView === 'history'">
+      <div *ngIf="settledShares.length === 0" class="empty-hint">尚無結算歷史</div>
+      <table *ngIf="settledShares.length > 0">
+        <thead>
+          <tr><th>書名</th><th>出版商</th><th>訂單#</th><th>總金額</th><th>平台(30%)</th><th>出版商(70%)</th><th>結算時間</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let rs of settledShares">
+            <td>{{ rs.bookTitle }}</td>
+            <td>{{ rs.publisherName }}</td>
+            <td>#{{ rs.orderId }}</td>
+            <td>{{ rs.totalPoints }} 點</td>
+            <td class="platform-share">{{ rs.platformSharePoints }} 點</td>
+            <td class="publisher-share">{{ rs.publisherSharePoints }} 點</td>
+            <td>{{ rs.settledAt | date:'yyyy/MM/dd HH:mm' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 金流錢包 ── -->
+  <div *ngIf="activeTab === 'wallet'" class="tab-content">
+    <h2>金流錢包</h2>
+    <div *ngIf="walletLoading" class="loading">載入中...</div>
+
+    <!-- 平台錢包 -->
+    <div *ngIf="platformWallet" class="wallet-section">
+      <h3>平台錢包</h3>
+      <div class="wallet-balance-card platform-card">
+        <span class="wallet-label">平台累計收益</span>
+        <span class="wallet-amount">{{ platformWallet.balancePoints }} <small>點</small></span>
+      </div>
+
+      <h4>平台交易紀錄（{{ platformWallet.transactions.length }} 筆）</h4>
+      <div *ngIf="platformWallet.transactions.length === 0" class="empty-hint">尚無平台交易紀錄</div>
+      <table *ngIf="platformWallet.transactions.length > 0">
+        <thead>
+          <tr><th>類型</th><th>金額（點）</th><th>訂單#</th><th>時間</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let tx of platformWallet.transactions">
+            <td>{{ tx.type === 'revenue_share' ? '抽成入帳' : tx.type }}</td>
+            <td class="positive">+{{ tx.amountPoints }}</td>
+            <td>{{ tx.orderId ? '#' + tx.orderId : '-' }}</td>
+            <td>{{ tx.createdAt | date:'yyyy/MM/dd HH:mm' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 出版商錢包總覽 -->
+    <div class="wallet-section">
+      <h3>出版商錢包總覽</h3>
+      <div *ngIf="publisherWallets.length === 0" class="empty-hint">尚無出版商錢包資料</div>
+      <table *ngIf="publisherWallets.length > 0">
+        <thead>
+          <tr><th>出版商</th><th>分潤餘額</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let pw of publisherWallets">
+            <td>{{ pw.publisherName }}</td>
+            <td class="publisher-share"><strong>{{ pw.balancePoints }} 點</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

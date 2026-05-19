@@ -1,0 +1,315 @@
+.seller-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: calc(100vh - 80px);
+}
+
+.seller-dashboard h1 {
+  color: #2c3e50;
+  margin-bottom: 2rem;
+}
+
+.seller-dashboard h2 {
+  color: #2c3e50;
+  margin-top: 0;
+  border-bottom: 2px solid #ecf0f1;
+  padding-bottom: 1rem;
+}
+
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  border: 1px solid #c3e6cb;
+}
+
+.dashboard-controls {
+  margin-bottom: 2rem;
+}
+
+.add-book-form {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.add-book-form form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  padding: 0.75rem;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.add-book-form button {
+  grid-column: 1 / -1;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.btn-primary {
+  background-color: #667eea;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #5568d3;
+}
+
+.btn-success {
+  background-color: #27ae60;
+  color: white;
+  width: 100%;
+}
+
+.btn-success:hover {
+  background-color: #229954;
+}
+
+.btn-edit {
+  background-color: #3498db;
+  color: white;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  margin-right: 0.5rem;
+}
+
+.btn-edit:hover {
+  background-color: #2980b9;
+}
+
+.btn-delete {
+  background-color: #e74c3c;
+  color: white;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+.btn-delete:hover {
+  background-color: #c0392b;
+}
+
+.books-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.no-books {
+  text-align: center;
+  padding: 2rem;
+  color: #7f8c8d;
+}
+
+.books-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.books-table thead {
+  background-color: #ecf0f1;
+  border-bottom: 2px solid #bdc3c7;
+}
+
+.books-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.books-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #ecf0f1;
+  color: #34495e;
+}
+
+.books-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* ── Tab 系統 ── */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #ecf0f1;
+}
+
+.tab-btn {
+  padding: 1rem 1.5rem;
+  border: none;
+  background: none;
+  color: #7f8c8d;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s;
+}
+
+.tab-btn:hover { color: #2c3e50; }
+.tab-btn.active { color: #667eea; border-bottom-color: #667eea; }
+.tab-btn-revenue { }
+.tab-btn-revenue.active { color: #27ae60; border-bottom-color: #27ae60; }
+
+/* ── Form cards ── */
+.form-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+.form-card h2 { margin-top: 0; color: #2c3e50; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.form-group { display: flex; flex-direction: column; }
+.form-group label { font-weight: bold; margin-bottom: 0.4rem; color: #2c3e50; font-size: 0.9rem; }
+.form-group input, .form-group select, .form-group textarea {
+  padding: 0.75rem;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+}
+.form-group.full-width { grid-column: 1 / -1; }
+.form-group textarea { resize: vertical; min-height: 80px; }
+
+.form-actions { display: flex; gap: 0.75rem; margin-top: 1rem; }
+
+.btn-secondary { background-color: #95a5a6; color: white; }
+.btn-secondary:hover { background-color: #7f8c8d; }
+
+.status-tag { padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+.status-active { background: #d4edda; color: #155724; }
+.status-draft { background: #fff3cd; color: #856404; }
+.status-discontinued { background: #f8d7da; color: #721c24; }
+.status-banned { background: #343a40; color: #fff; }
+
+/* ── 分潤收入 ── */
+.publisher-wallet-card {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+  padding: 1.5rem 2rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.wallet-info { display: flex; flex-direction: column; gap: 0.25rem; }
+.wallet-label { font-size: 0.9rem; opacity: 0.85; }
+.wallet-amount { font-size: 2.5rem; font-weight: bold; }
+.wallet-amount small { font-size: 1rem; margin-left: 0.25rem; opacity: 0.8; }
+.wallet-hint { font-size: 0.8rem; opacity: 0.75; max-width: 220px; text-align: right; }
+
+.sub-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #ecf0f1;
+}
+
+.sub-tab-btn {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  background: none;
+  color: #7f8c8d;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.sub-tab-btn:hover { color: #2c3e50; }
+.sub-tab-btn.active { color: #27ae60; border-bottom-color: #27ae60; }
+
+.revenue-section { background: white; padding: 1.25rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+
+.revenue-section table { width: 100%; border-collapse: collapse; }
+.revenue-section thead { background: #ecf0f1; border-bottom: 2px solid #bdc3c7; }
+.revenue-section th { padding: 0.75rem 1rem; text-align: left; font-weight: bold; color: #2c3e50; }
+.revenue-section td { padding: 0.75rem 1rem; border-bottom: 1px solid #ecf0f1; color: #34495e; }
+.revenue-section tr:hover { background: #f9f9f9; }
+
+.amount-positive { color: #27ae60; font-weight: bold; }
+
+.badge-pending { background: #fff3cd; color: #856404; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+.badge-settled { background: #d4edda; color: #155724; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+
+.empty-hint { text-align: center; padding: 1.5rem; color: #7f8c8d; font-style: italic; }
+.loading-hint { text-align: center; padding: 2rem; color: #7f8c8d; }
+
+@media (max-width: 768px) {
+  .tabs { flex-wrap: wrap; }
+  .form-grid { grid-template-columns: 1fr; }
+  .books-table { overflow-x: auto; }
+  .books-table table { font-size: 0.9rem; }
+  .books-table th, .books-table td { padding: 0.75rem 0.5rem; }
+  .publisher-wallet-card { flex-direction: column; }
+  .wallet-hint { text-align: left; }
+  .revenue-section table { font-size: 0.85rem; }
+}

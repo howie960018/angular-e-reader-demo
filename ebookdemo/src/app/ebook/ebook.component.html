@@ -1,0 +1,101 @@
+<div #measureBox class="measure-box"></div>
+
+<div class="ebook-wrapper" [class.dark-mode]="isDarkMode" [class.light-mode]="!isDarkMode">
+
+  <header class="toolbar">
+    <div class="toolbar-left">
+      <button class="back-home-btn" (click)="router.navigate(['/'])" title="返回首頁">←</button>
+      <span class="book-title">📖 {{ bookTitle }}</span>
+    </div>
+    <div class="toolbar-center">
+      <span class="page-info" *ngIf="!isLoading && !loadError">
+        第 {{ displayPageNumber }} / {{ totalDisplayPages }} 頁
+        <span class="page-info-sub">（共 {{ pages.length }} 頁）</span>
+      </span>
+      <span class="preview-badge" *ngIf="isPreview && !isLoading">🔒 試閱模式</span>
+    </div>
+    <div class="toolbar-right">
+      <button class="tool-btn icon-btn" (click)="toggleDark()" [title]="isDarkMode ? '切換亮色' : '切換深色'">
+        {{ isDarkMode ? '☀️' : '🌙' }}
+      </button>
+      <button class="tool-btn icon-btn" (click)="toggleMode()" [disabled]="isLoading || loadError"
+        [title]="readingMode === 'double' ? '切換單頁' : '切換雙頁'">
+        {{ readingMode === 'double' ? '📄' : '📋' }}
+      </button>
+      <div class="font-ctrl">
+        <button class="tool-btn" (click)="zoomOut()" [disabled]="isLoading || loadError || fontSize <= 12">A-</button>
+        <span class="font-size-display">{{ fontSize }}</span>
+        <button class="tool-btn" (click)="zoomIn()" [disabled]="isLoading || loadError || fontSize >= 40">A+</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="state-screen" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>載入中…</p>
+  </div>
+
+  <div class="state-screen error-screen" *ngIf="!isLoading && loadError">
+    <span class="error-icon">📂</span>
+    <p>無法載入書本</p>
+    <button class="tool-btn retry-btn" (click)="loadContent(bookId)">重試</button>
+  </div>
+
+  <main class="book-stage" *ngIf="!isLoading && !loadError">
+    <button class="nav-btn nav-prev" (click)="prev()" [disabled]="currentPage === 0" aria-label="上一頁">&#8249;</button>
+
+    <div class="book-container" [class.single-mode]="readingMode === 'single'">
+
+      <!-- 左頁 / 主頁 -->
+      <div class="page-wrap" [class.locked-page-wrap]="isLeftLocked">
+        <div class="page-content" [style.fontSize.px]="fontSize" *ngIf="!isLeftLocked">{{ leftPage }}</div>
+
+        <!-- 鎖定頁面 -->
+        <div class="lock-screen" *ngIf="isLeftLocked">
+          <div class="lock-icon">🔒</div>
+          <h3>試閱結束</h3>
+          <p>購買此書後即可閱讀完整內容</p>
+          <p class="lock-hint">（共 {{ totalLength }} 字，已閱讀前 {{ previewLength }} 字）</p>
+          <button class="lock-buy-btn" (click)="goToBuy()">立即購買</button>
+          <button class="lock-login-btn" *ngIf="!isLoggedIn" (click)="goToLogin()">先去登入</button>
+        </div>
+
+        <span class="page-number" *ngIf="!isLeftLocked">{{ currentPage + 1 }}</span>
+      </div>
+
+      <!-- 右頁（雙頁模式） -->
+      <div class="page-wrap" *ngIf="readingMode === 'double'" [class.empty-page]="!rightPage && !isRightLocked" [class.locked-page-wrap]="isRightLocked">
+        <div class="page-content" [style.fontSize.px]="fontSize" *ngIf="!isRightLocked">{{ rightPage }}</div>
+
+        <!-- 鎖定頁面（右頁） -->
+        <div class="lock-screen" *ngIf="isRightLocked">
+          <div class="lock-icon">🔒</div>
+          <h3>試閱結束</h3>
+          <p>購買此書後即可閱讀完整內容</p>
+          <p class="lock-hint">（共 {{ totalLength }} 字，已閱讀前 {{ previewLength }} 字）</p>
+          <button class="lock-buy-btn" (click)="goToBuy()">立即購買</button>
+        </div>
+
+        <span class="page-number" *ngIf="rightPage && !isRightLocked">{{ currentPage + 2 }}</span>
+      </div>
+
+    </div>
+
+    <button class="nav-btn nav-next" (click)="next()"
+      [disabled]="currentPage + (readingMode === 'double' ? 2 : 1) >= pages.length"
+      aria-label="下一頁">&#8250;</button>
+  </main>
+
+  <footer class="bottom-bar" *ngIf="!isLoading && !loadError">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" [style.width.%]="progressPercent"></div>
+    </div>
+    <div class="jump-area">
+      <span>跳至第</span>
+      <input type="number" class="jump-input" [(ngModel)]="jumpPage" [min]="1" [max]="pages.length" (keyup.enter)="goToPage()" />
+      <span>頁</span>
+      <button class="jump-btn" (click)="goToPage()">GO</button>
+    </div>
+  </footer>
+
+</div>

@@ -1,0 +1,24 @@
+<div class="login-container">
+  <div class="login-form">
+    <h1>會員登入</h1>
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+    <div class="form-group">
+      <label for="username">帳號：</label>
+      <input id="username" type="text" [(ngModel)]="loginForm.username" placeholder="請輸入帳號" [disabled]="isLoading" />
+    </div>
+    <div class="form-group">
+      <label for="password">密碼：</label>
+      <input id="password" type="password" [(ngModel)]="loginForm.password" placeholder="請輸入密碼" [disabled]="isLoading" />
+    </div>
+    <button class="btn btn-primary" (click)="login()" [disabled]="isLoading">
+      {{ isLoading ? '登入中...' : '登入' }}
+    </button>
+    <p class="register-link">還沒有帳號？<a (click)="goToRegister()">立即註冊</a></p>
+    <div class="demo-section">
+      <p>測試帳號（密碼皆為 password）：</p>
+      <button class="btn btn-demo" (click)="fillDemo('user')">一般用戶：user1</button>
+      <button class="btn btn-demo" (click)="fillDemo('seller')">出版商：seller1</button>
+      <button class="btn btn-demo" (click)="fillDemo('admin')">管理員：admin1</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,33 @@
+<div class="my-books-container">
+  <h1>我的書籍</h1>
+  <p class="subtitle">已購買的書籍，點擊即可閱讀完整內容</p>
+
+  <div *ngIf="isLoading" class="loading">
+    <p>載入中...</p>
+  </div>
+
+  <div *ngIf="!isLoading && purchasedBooks.length === 0" class="empty-state">
+    <div class="empty-icon">📚</div>
+    <h2>您還沒有購買任何書籍</h2>
+    <p>前往書城選購您喜歡的書籍吧！</p>
+    <button class="btn btn-primary" (click)="goShopping()">前往書城</button>
+  </div>
+
+  <div *ngIf="!isLoading && purchasedBooks.length > 0" class="books-grid">
+    <div *ngFor="let book of purchasedBooks" class="book-card">
+      <div class="book-cover">
+        <img [src]="book.coverImage" [alt]="book.title"
+          (error)="$any($event.target).src='https://placehold.co/200x300?text=Book'" />
+        <div class="book-badge">已購買</div>
+      </div>
+      <div class="book-info">
+        <h3>{{ book.title }}</h3>
+        <p class="author">{{ book.author }}</p>
+        <p class="seller">{{ book.sellerName }}</p>
+        <button class="btn btn-read" (click)="readBook(book.id)">
+          📖 開始閱讀
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

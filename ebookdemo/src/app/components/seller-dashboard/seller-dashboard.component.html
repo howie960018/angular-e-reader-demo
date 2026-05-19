@@ -1,0 +1,211 @@
+<div class="seller-dashboard">
+  <h1>出版商後台</h1>
+
+  <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+  <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+  <!-- Tab 列 -->
+  <div class="tabs">
+    <button [class.active]="activeTab === 'books'" (click)="switchTab('books')" class="tab-btn">
+      我的書籍（{{ books.length }}）
+    </button>
+    <button [class.active]="activeTab === 'revenue'" (click)="switchTab('revenue')" class="tab-btn tab-btn-revenue">
+      分潤收入
+    </button>
+  </div>
+
+  <!-- ── 書籍管理 ── -->
+  <div *ngIf="activeTab === 'books'">
+    <div class="dashboard-controls">
+      <button class="btn btn-primary" (click)="showAddForm = !showAddForm; showEditForm = false">
+        {{ showAddForm ? '取消' : '+ 新增書籍' }}
+      </button>
+    </div>
+
+    <!-- 新增書籍表單 -->
+    <div *ngIf="showAddForm" class="form-card">
+      <h2>新增書籍</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>書名 *</label>
+          <input type="text" [(ngModel)]="newBook.title" placeholder="請輸入書名" />
+        </div>
+        <div class="form-group">
+          <label>作者 *</label>
+          <input type="text" [(ngModel)]="newBook.author" placeholder="請輸入作者" />
+        </div>
+        <div class="form-group">
+          <label>售價（點） *</label>
+          <input type="number" [(ngModel)]="newBook.price" min="0" placeholder="0" />
+        </div>
+        <div class="form-group">
+          <label>商品狀態</label>
+          <select [(ngModel)]="newBook.status">
+            <option *ngFor="let s of sellerStatuses" [value]="s.value">{{ s.label }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>分類</label>
+          <select [(ngModel)]="newBook.categoryId">
+            <option value="">請選擇分類</option>
+            <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>封面圖片網址</label>
+          <input type="text" [(ngModel)]="newBook.coverImage" placeholder="https://..." />
+        </div>
+        <div class="form-group full-width">
+          <label>內容簡介</label>
+          <textarea [(ngModel)]="newBook.description" placeholder="請輸入書籍簡介" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-success" (click)="addBook()">確認新增</button>
+        <button class="btn btn-secondary" (click)="showAddForm = false">取消</button>
+      </div>
+    </div>
+
+    <!-- 編輯書籍表單 -->
+    <div *ngIf="showEditForm && editingBook" class="form-card edit-card">
+      <h2>編輯書籍：{{ editingBook.title }}</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>書名 *</label>
+          <input type="text" [(ngModel)]="editBook.title" />
+        </div>
+        <div class="form-group">
+          <label>作者 *</label>
+          <input type="text" [(ngModel)]="editBook.author" />
+        </div>
+        <div class="form-group">
+          <label>售價（點） *</label>
+          <input type="number" [(ngModel)]="editBook.price" min="0" />
+        </div>
+        <div class="form-group">
+          <label>商品狀態</label>
+          <select [(ngModel)]="editBook.status">
+            <option *ngFor="let s of sellerStatuses" [value]="s.value">{{ s.label }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>分類</label>
+          <select [(ngModel)]="editBook.categoryId">
+            <option value="">請選擇分類</option>
+            <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>封面圖片網址</label>
+          <input type="text" [(ngModel)]="editBook.coverImage" />
+        </div>
+        <div class="form-group full-width">
+          <label>內容簡介</label>
+          <textarea [(ngModel)]="editBook.description" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" (click)="saveEdit()">儲存修改</button>
+        <button class="btn btn-secondary" (click)="cancelEdit()">取消</button>
+      </div>
+    </div>
+
+    <!-- 書籍列表 -->
+    <div class="books-section">
+      <h2>我的書籍（{{ books.length }} 本）</h2>
+      <div *ngIf="books.length === 0" class="no-books"><p>尚未新增任何書籍</p></div>
+      <div *ngIf="books.length > 0" class="books-table">
+        <table>
+          <thead>
+            <tr>
+              <th>書名</th><th>作者</th><th>售價</th><th>分類</th><th>狀態</th><th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let book of books">
+              <td>{{ book.title }}</td>
+              <td>{{ book.author }}</td>
+              <td>{{ book.price }} 點</td>
+              <td>{{ getCategoryName(book.categoryId) }}</td>
+              <td><span class="status-tag status-{{ book.status }}">{{ getStatusLabel(book.status) }}</span></td>
+              <td class="action-btns">
+                <button class="btn btn-edit" (click)="openEdit(book)">編輯</button>
+                <button class="btn btn-delete" (click)="deleteBook(book.id)">刪除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 分潤收入 ── -->
+  <div *ngIf="activeTab === 'revenue'">
+    <div *ngIf="revenueLoading" class="loading-hint">載入中...</div>
+
+    <!-- 分潤錢包餘額卡 -->
+    <div *ngIf="publisherWallet" class="publisher-wallet-card">
+      <div class="wallet-info">
+        <span class="wallet-label">分潤累計餘額</span>
+        <span class="wallet-amount">{{ publisherWallet.balancePoints }} <small>點</small></span>
+      </div>
+      <div class="wallet-hint">待結算金額由 Admin 執行結算後自動入帳</div>
+    </div>
+
+    <!-- 子頁 切換 -->
+    <div class="sub-tabs">
+      <button [class.active]="revenueSubTab === 'transactions'"
+              (click)="revenueSubTab = 'transactions'" class="sub-tab-btn">
+        入帳記錄（{{ publisherWallet?.transactions?.length ?? 0 }}）
+      </button>
+      <button [class.active]="revenueSubTab === 'shares'"
+              (click)="revenueSubTab = 'shares'" class="sub-tab-btn">
+        分潤明細（{{ myRevenue.length }}）
+      </button>
+    </div>
+
+    <!-- 入帳記錄 -->
+    <div *ngIf="revenueSubTab === 'transactions'" class="revenue-section">
+      <div *ngIf="!publisherWallet || (publisherWallet.transactions?.length ?? 0) === 0" class="empty-hint">
+        尚無入帳記錄（需 Admin 執行結算後才會有入帳）
+      </div>
+      <table *ngIf="publisherWallet && (publisherWallet.transactions?.length ?? 0) > 0">
+        <thead>
+          <tr><th>類型</th><th>入帳點數</th><th>訂單#</th><th>入帳時間</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let tx of publisherWallet.transactions">
+            <td>{{ getRevenueTypeLabel(tx.type) }}</td>
+            <td class="amount-positive">+{{ tx.amountPoints }} 點</td>
+            <td>{{ tx.orderId ? '#' + tx.orderId : '-' }}</td>
+            <td>{{ tx.createdAt | date:'yyyy/MM/dd HH:mm' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 分潤明細 -->
+    <div *ngIf="revenueSubTab === 'shares'" class="revenue-section">
+      <div *ngIf="myRevenue.length === 0" class="empty-hint">尚無分潤明細</div>
+      <table *ngIf="myRevenue.length > 0">
+        <thead>
+          <tr><th>書名</th><th>訂單#</th><th>銷售金額</th><th>我的分潤(70%)</th><th>狀態</th><th>建立時間</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let rs of myRevenue">
+            <td>{{ rs.bookTitle }}</td>
+            <td>#{{ rs.orderId }}</td>
+            <td>{{ rs.totalPoints }} 點</td>
+            <td class="amount-positive"><strong>{{ rs.publisherSharePoints }} 點</strong></td>
+            <td>
+              <span [class]="rs.settled ? 'badge-settled' : 'badge-pending'">
+                {{ rs.settled ? '已結算' : '待結算' }}
+              </span>
+            </td>
+            <td>{{ rs.createdAt | date:'yyyy/MM/dd HH:mm' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

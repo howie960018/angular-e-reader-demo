@@ -1,0 +1,167 @@
+.orders-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: calc(100vh - 80px);
+}
+
+.orders-container h1 {
+  color: #2c3e50;
+  margin-bottom: 2rem;
+}
+
+.no-orders {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #7f8c8d;
+}
+
+.no-orders p {
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.btn-primary {
+  background-color: #667eea;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #5568d3;
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.order-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.order-header {
+  background-color: #f9f9f9;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.order-info h3 {
+  margin: 0 0 0.25rem;
+  color: #2c3e50;
+  font-size: 1.2rem;
+}
+
+.order-info .date {
+  margin: 0;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.order-status {
+  display: flex;
+  gap: 1rem;
+}
+
+.status {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status.completed {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status.pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status.cancelled {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.order-items {
+  padding: 1.5rem;
+}
+
+.order-items table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.order-items thead {
+  background-color: #ecf0f1;
+  border-bottom: 2px solid #bdc3c7;
+}
+
+.order-items th {
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.order-items td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #ecf0f1;
+  color: #34495e;
+}
+
+.order-footer {
+  background-color: #f9f9f9;
+  padding: 1rem 1.5rem;
+  text-align: right;
+  border-top: 1px solid #ecf0f1;
+}
+
+.total {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #27ae60;
+}
+
+@media (max-width: 768px) {
+  .order-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .order-status {
+    margin-top: 1rem;
+  }
+
+  .order-items table {
+    font-size: 0.9rem;
+  }
+
+  .order-items th,
+  .order-items td {
+    padding: 0.5rem 0.25rem;
+  }
+}

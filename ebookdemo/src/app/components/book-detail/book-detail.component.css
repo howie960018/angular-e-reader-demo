@@ -1,0 +1,201 @@
+.book-detail-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: calc(100vh - 80px);
+}
+
+.back-btn {
+  background-color: #95a5a6;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 2rem;
+}
+
+.back-btn:hover {
+  background-color: #7f8c8d;
+}
+
+.loading,
+.not-found {
+  text-align: center;
+  padding: 2rem;
+  color: #7f8c8d;
+  font-size: 1.2rem;
+}
+
+.book-detail {
+  display: flex;
+  gap: 2rem;
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.book-cover {
+  flex: 0 0 300px;
+}
+
+.book-cover img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.book-content {
+  flex: 1;
+}
+
+.book-content h1 {
+  margin: 0 0 0.5rem;
+  color: #2c3e50;
+  font-size: 2rem;
+}
+
+.author {
+  color: #7f8c8d;
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem;
+}
+
+.publisher {
+  color: #95a5a6;
+  font-size: 0.95rem;
+  margin: 0 0 1.5rem;
+}
+
+.description-section {
+  margin-bottom: 2rem;
+}
+
+.description-section h3 {
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.description-section p {
+  color: #34495e;
+  line-height: 1.6;
+}
+
+.price-section {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #e74c3c;
+  margin-bottom: 1.5rem;
+}
+
+.quantity-section {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.quantity-section label {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.quantity-input {
+  width: 80px;
+  padding: 0.5rem;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+  font-weight: bold;
+}
+
+.btn-primary {
+  background-color: #667eea;
+  color: white;
+  flex: 1;
+  min-width: 150px;
+}
+
+.btn-primary:hover {
+  background-color: #5568d3;
+}
+
+.btn-cart {
+  background-color: #27ae60;
+  color: white;
+  flex: 1;
+  min-width: 150px;
+}
+
+.btn-cart:hover {
+  background-color: #229954;
+}
+
+.btn-read {
+  background-color: #f39c12;
+  color: white;
+  flex: 1;
+  min-width: 150px;
+}
+
+.btn-read:hover {
+  background-color: #e67e22;
+}
+
+.login-prompt {
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+  padding: 1rem;
+  border-radius: 4px;
+  color: #856404;
+}
+
+.login-prompt a {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.login-prompt a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .book-detail {
+    flex-direction: column;
+  }
+
+  .book-cover {
+    flex: 0 0 auto;
+    max-width: 100%;
+  }
+
+  .book-content h1 {
+    font-size: 1.5rem;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}

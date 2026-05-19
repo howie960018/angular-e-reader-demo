@@ -1,0 +1,72 @@
+<div class="wallet-container">
+  <h1>我的錢包</h1>
+
+  <!-- 餘額卡片 -->
+  <div class="wallet-card">
+    <h2>目前餘額</h2>
+    <div class="balance-display">
+      <p>{{ wallet?.balance ?? 0 }} <span>點</span></p>
+    </div>
+  </div>
+
+  <!-- ── 直接儲值 ── -->
+  <div class="topup-section">
+    <h2>直接儲值</h2>
+    <div *ngIf="directSuccess" class="success-message">{{ directSuccess }}</div>
+    <div *ngIf="directError" class="error-message">{{ directError }}</div>
+    <div class="direct-topup-form">
+      <input type="number" [(ngModel)]="directAmount" min="1" placeholder="請輸入儲值點數"
+             class="code-input" [disabled]="directLoading" />
+      <button class="btn btn-primary" (click)="topupDirect()" [disabled]="directLoading || !directAmount">
+        {{ directLoading ? '處理中...' : '立即儲值' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ── 兌換碼 ── -->
+  <div class="topup-section">
+    <h2>兌換儲值碼</h2>
+    <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+    <div class="topup-form">
+      <label for="topUpCode">輸入兌換碼：</label>
+      <input id="topUpCode" type="text" [(ngModel)]="topUpCode" placeholder="請輸入兌換碼"
+             [disabled]="isLoading" class="code-input" />
+      <button class="btn btn-primary" (click)="useTopUpCode()" [disabled]="isLoading">
+        {{ isLoading ? '處理中...' : '立即兌換' }}
+      </button>
+    </div>
+    <div class="available-codes" *ngIf="availableCodes.length > 0">
+      <p>可用兌換碼：</p>
+      <div class="code-list">
+        <button *ngFor="let code of getAvailableCodes()" (click)="setTopUpCode(code)" class="code-btn">
+          {{ code }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 交易紀錄 ── -->
+  <div class="transactions-section">
+    <h2>交易紀錄</h2>
+    <div *ngIf="transactions.length === 0" class="no-transactions"><p>尚無交易紀錄</p></div>
+    <div *ngIf="transactions.length > 0" class="transactions-list">
+      <table>
+        <thead>
+          <tr><th>類型</th><th>金額</th><th>說明</th><th>訂單</th><th>時間</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let tx of transactions">
+            <td><strong>{{ getTypeLabel(tx.type) }}</strong></td>
+            <td [class]="tx.amount < 0 ? 'negative' : 'positive'">
+              {{ tx.amount > 0 ? '+' : '' }}{{ tx.amount }} 點
+            </td>
+            <td>{{ tx.description }}</td>
+            <td>{{ tx.orderId ? '#' + tx.orderId : '-' }}</td>
+            <td>{{ tx.createdAt | date:'yyyy/MM/dd HH:mm' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

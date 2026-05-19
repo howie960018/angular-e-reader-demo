@@ -1,0 +1,40 @@
+<div class="orders-container">
+  <h1>我的訂單</h1>
+  <div *ngIf="orders.length === 0" class="no-orders">
+    <p>您還沒有任何訂單</p>
+    <a href="/" class="btn btn-primary">去逛逛</a>
+  </div>
+  <div *ngIf="orders.length > 0" class="orders-list">
+    <div *ngFor="let order of orders" class="order-card">
+      <div class="order-header">
+        <div class="order-info">
+          <h3>訂單 #{{ order.id }}</h3>
+          <p class="date">{{ order.createdAt | date:'yyyy/MM/dd HH:mm' }}</p>
+        </div>
+        <div class="order-status">
+          <span [class]="'status ' + order.status.toLowerCase()">
+            {{ order.status === 'COMPLETED' ? '已完成' : order.status === 'PENDING' ? '處理中' : '已取消' }}
+          </span>
+        </div>
+      </div>
+      <div class="order-items">
+        <table>
+          <thead>
+            <tr><th>書籍</th><th>數量</th><th>單價</th><th>小計</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of order.items">
+              <td>{{ item.book.title }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>{{ item.price }} 點</td>
+              <td>{{ item.price * item.quantity }} 點</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="order-footer">
+        <span class="total">總計：{{ order.totalPrice }} 點</span>
+      </div>
+    </div>
+  </div>
+</div>
