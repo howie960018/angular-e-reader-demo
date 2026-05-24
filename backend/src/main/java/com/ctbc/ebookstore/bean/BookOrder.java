@@ -37,4 +37,8 @@ public class BookOrder {
 
     @Column(nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    /** 付款期限：訂單建立後 5 分鐘內須完成付款，逾時自動取消 */
+    @Column(nullable = false)
+    private LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(5);
 }

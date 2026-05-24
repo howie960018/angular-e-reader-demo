@@ -350,6 +350,58 @@ tbody tr:hover {
 
 .loading { text-align: center; padding: 2rem; color: #7f8c8d; }
 
+/* ── 訂單展開細項 ── */
+.btn-expand {
+  background: none;
+  border: 1px solid #bdc3c7;
+  border-radius: 3px;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: #7f8c8d;
+  transition: background-color 0.15s;
+}
+
+.btn-expand:hover {
+  background-color: #ecf0f1;
+}
+
+.order-detail-row td {
+  padding: 0;
+  background: #f8f9fa;
+  border-bottom: 2px solid #667eea;
+}
+
+.order-detail-panel {
+  padding: 0.75rem 1.5rem 1rem;
+}
+
+.inner-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.inner-table th {
+  background: #ecf0f1;
+  padding: 0.4rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.inner-table td {
+  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid #e0e0e0;
+  color: #34495e;
+}
+
+.cancel-confirm-text {
+  color: #e74c3c;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
 @media (max-width: 768px) {
   .tabs { flex-direction: column; }
   .tab-btn { padding: 0.75rem; }

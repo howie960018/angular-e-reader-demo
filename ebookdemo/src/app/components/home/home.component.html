@@ -27,7 +27,8 @@
               <span class="price">{{ book.price }} 點</span>
               <div class="actions">
                 <button class="btn btn-view" (click)="viewBook(book.id)">查看詳情</button>
-                <button class="btn btn-cart" (click)="addToCart(book)">加入購物車</button>
+                <span *ngIf="isPending(book.id)" class="badge-pending">待付款中</span>
+                <button *ngIf="!isPending(book.id)" class="btn btn-cart" (click)="addToCart(book)">加入購物車</button>
               </div>
             </div>
           </div>

@@ -62,6 +62,11 @@ public class CartService {
             throw new BadRequestException("您已購買過《" + book.getTitle() + "》，無需重複購買");
         }
 
+        // 書籍已在待付款訂單中，不可重複加入
+        if (orderItemRepo.hasBookInPendingOrder(user, book)) {
+            throw new BadRequestException("《" + book.getTitle() + "》已在待付款訂單中，請先完成付款或取消訂單");
+        }
+
         // 電子書每本只需一份，忽略傳入數量，固定 quantity = 1
         CartItem existing = cartItemRepo.findByCartAndBookId(cart, bookId).orElse(null);
         if (existing != null) {

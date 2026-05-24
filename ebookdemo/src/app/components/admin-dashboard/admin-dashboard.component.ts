@@ -46,6 +46,7 @@ export class AdminDashboardComponent implements OnInit {
   // 訂單編輯
   editingOrderId: string | null = null;
   editOrderStatus = '';
+  expandedOrderId: string | null = null;
 
   // 儲值碼
   newCode = { code: '', amount: 0 };
@@ -132,16 +133,20 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   // ── 訂單管理 ─────────────────────────────────────────────────
+  toggleOrderDetail(orderId: string): void {
+    this.expandedOrderId = this.expandedOrderId === orderId ? null : orderId;
+  }
+
   startEditOrder(order: Order): void {
     this.editingOrderId = order.id;
-    this.editOrderStatus = order.status;
+    this.editOrderStatus = 'CANCELLED';
   }
 
   saveEditOrder(): void {
     if (!this.editingOrderId) return;
     this.orderService.updateOrderStatus(this.editingOrderId, this.editOrderStatus as OrderStatus).subscribe({
       next: () => {
-        this.showSuccess('訂單狀態已更新');
+        this.showSuccess('訂單已取消');
         this.editingOrderId = null;
         this.orderService.getAllOrders().subscribe(o => { this.orders = o; });
       },

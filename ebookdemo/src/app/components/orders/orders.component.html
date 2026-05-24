@@ -13,10 +13,41 @@
         </div>
         <div class="order-status">
           <span [class]="'status ' + order.status.toLowerCase()">
-            {{ order.status === 'COMPLETED' ? '已完成' : order.status === 'PENDING' ? '處理中' : '已取消' }}
+            {{ getStatusLabel(order.status) }}
           </span>
         </div>
       </div>
+
+      <!-- 待付款倒數計時區塊 -->
+      <div *ngIf="isPending(order)" class="payment-bar">
+        <ng-container *ngIf="!isExpired(order); else expiredBlock">
+          <div class="timer-section">
+            <span class="timer-label">付款倒數：</span>
+            <span class="timer" [class.timer-urgent]="countdowns[order.id] <= '01:00'">
+              {{ countdowns[order.id] || '--:--' }}
+            </span>
+          </div>
+          <div class="payment-actions">
+            <button class="btn btn-pay"
+              [disabled]="actionInProgress[order.id]"
+              (click)="confirmPayment(order)">
+              {{ actionInProgress[order.id] ? '處理中...' : '確認付款' }}
+            </button>
+            <button class="btn btn-cancel-order"
+              [disabled]="actionInProgress[order.id]"
+              (click)="cancelOrder(order)">
+              取消訂單
+            </button>
+          </div>
+        </ng-container>
+        <ng-template #expiredBlock>
+          <span class="expired-label">訂單已逾時，將自動取消</span>
+        </ng-template>
+        <div *ngIf="errorMessages[order.id]" class="order-error">
+          {{ errorMessages[order.id] }}
+        </div>
+      </div>
+
       <div class="order-items">
         <table>
           <thead>

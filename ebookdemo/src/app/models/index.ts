@@ -166,11 +166,14 @@ export interface OrderItem {
 export interface Order {
   id: string;
   userId: string;
+  username?: string;
   items: OrderItem[];
   totalPrice: number;
   status: OrderStatus;
   createdAt: Date;
   updatedAt: Date;
+  /** 付款期限（PENDING 訂單限 5 分鐘內付款） */
+  expiresAt?: Date;
 }
 
 // Wishlist

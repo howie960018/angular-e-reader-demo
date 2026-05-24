@@ -56,12 +56,26 @@ public class OrderController {
         return OrderDto.from(order);
     }
 
+    /** 確認下單：建立 PENDING 訂單，不扣款 */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public OrderDto createOrder(Authentication auth) {
         AppUser user = userService.findByUsername(auth.getName());
-        BookOrder order = orderService.createFromCart(user);
-        return OrderDto.from(order);
+        return OrderDto.from(orderService.createFromCart(user));
+    }
+
+    /** 確認付款：扣款並完成訂單 */
+    @PostMapping("/{id}/pay")
+    public OrderDto confirmPayment(@PathVariable Long id, Authentication auth) {
+        AppUser user = userService.findByUsername(auth.getName());
+        return OrderDto.from(orderService.confirmPayment(id, user));
+    }
+
+    /** 使用者主動取消待付款訂單 */
+    @PostMapping("/{id}/cancel")
+    public OrderDto cancelOrder(@PathVariable Long id, Authentication auth) {
+        AppUser user = userService.findByUsername(auth.getName());
+        return OrderDto.from(orderService.cancelOrder(id, user));
     }
 
     @PutMapping("/{id}/status")

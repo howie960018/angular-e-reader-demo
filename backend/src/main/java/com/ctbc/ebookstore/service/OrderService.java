@@ -2,8 +2,10 @@ package com.ctbc.ebookstore.service;
 
 import com.ctbc.ebookstore.bean.*;
 import com.ctbc.ebookstore.exception.BadRequestException;
+import com.ctbc.ebookstore.exception.ForbiddenException;
 import com.ctbc.ebookstore.exception.ResourceNotFoundException;
 import com.ctbc.ebookstore.repository.OrderRepository;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,13 +42,17 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + id));
     }
 
+    /**
+     * 從購物車建立訂單（狀態：PENDING，尚未付款）。
+     * 不扣款、不建立分潤，僅鎖定商品並清空購物車。
+     * 訂單有效期限 5 分鐘，逾時自動取消。
+     */
     @Transactional
     public BookOrder createFromCart(AppUser user) {
-        // FOR UPDATE 鎖：防止同一用戶並發結帳產生重複訂單
         Cart cart = cartService.getOrCreateCartForUpdate(user);
 
         if (cart.getItems().isEmpty()) {
-            throw new BadRequestException("Cart is empty");
+            throw new BadRequestException("購物車是空的");
         }
 
         BigDecimal total = cart.getItems().stream()
@@ -54,17 +60,11 @@ public class OrderService {
                         .multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // 1. 先檢查餘額（不扣款），避免訂單建立後才發現餘額不足
-        Wallet wallet = walletService.getUserWallet(user);
-        if (wallet.getBalance().compareTo(total) < 0) {
-            throw new BadRequestException("錢包餘額不足");
-        }
-
-        // 2. 建立訂單
         BookOrder order = new BookOrder();
         order.setUser(user);
         order.setTotalPrice(total);
-        order.setStatus("COMPLETED");
+        order.setStatus("PENDING");
+        order.setExpiresAt(LocalDateTime.now().plusMinutes(5));
 
         for (CartItem cartItem : cart.getItems()) {
             OrderItem orderItem = new OrderItem(order, cartItem.getBook(),
@@ -73,26 +73,80 @@ public class OrderService {
         }
 
         BookOrder saved = orderRepo.save(order);
+        cartService.clearCart(user);
+        return saved;
+    }
 
-        // 3. 從使用者錢包扣款，帶 order 參照（記錄負數金額）
-        walletService.purchase(user, total, saved);
+    /**
+     * 使用者確認付款：扣除錢包餘額並將訂單標記為 COMPLETED。
+     * 同時建立分潤記錄供管理員後續結算。
+     */
+    @Transactional
+    public BookOrder confirmPayment(Long orderId, AppUser user) {
+        BookOrder order = findById(orderId);
 
-        // 4. 每本書建立一筆待結算分潤記錄（此時平台/出版商尚未入帳）
-        for (CartItem cartItem : cart.getItems()) {
-            BigDecimal bookTotal = cartItem.getBook().getPrice()
-                    .multiply(BigDecimal.valueOf(cartItem.getQuantity()));
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new ForbiddenException("無權操作此訂單");
+        }
+        if (!"PENDING".equals(order.getStatus())) {
+            throw new BadRequestException("此訂單狀態無法付款");
+        }
+        if (LocalDateTime.now().isAfter(order.getExpiresAt())) {
+            order.setStatus("CANCELLED");
+            order.setUpdatedAt(LocalDateTime.now());
+            orderRepo.save(order);
+            throw new BadRequestException("訂單已逾時，請重新下單");
+        }
+
+        walletService.purchase(user, order.getTotalPrice(), order);
+
+        for (OrderItem item : order.getItems()) {
             settlementService.createPendingShare(
-                    saved,
-                    cartItem.getBook(),
-                    cartItem.getBook().getSeller(),
-                    bookTotal
+                    order,
+                    item.getBook(),
+                    item.getBook().getSeller(),
+                    item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()))
             );
         }
 
-        // 5. 清空購物車
-        cartService.clearCart(user);
+        order.setStatus("COMPLETED");
+        order.setUpdatedAt(LocalDateTime.now());
+        return orderRepo.save(order);
+    }
 
-        return saved;
+    /**
+     * 使用者主動取消訂單（僅限 PENDING 狀態）。
+     */
+    @Transactional
+    public BookOrder cancelOrder(Long orderId, AppUser user) {
+        BookOrder order = findById(orderId);
+
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new ForbiddenException("無權操作此訂單");
+        }
+        if (!"PENDING".equals(order.getStatus())) {
+            throw new BadRequestException("只有待付款訂單可以取消");
+        }
+
+        order.setStatus("CANCELLED");
+        order.setUpdatedAt(LocalDateTime.now());
+        return orderRepo.save(order);
+    }
+
+    /**
+     * 每 60 秒掃描一次，將逾時未付款的 PENDING 訂單自動取消。
+     */
+    @Scheduled(fixedDelay = 60000)
+    @Transactional
+    public void cancelExpiredOrders() {
+        List<BookOrder> expired = orderRepo.findByStatusAndExpiresAtBefore("PENDING", LocalDateTime.now());
+        for (BookOrder order : expired) {
+            order.setStatus("CANCELLED");
+            order.setUpdatedAt(LocalDateTime.now());
+        }
+        if (!expired.isEmpty()) {
+            orderRepo.saveAll(expired);
+        }
     }
 
     @Transactional

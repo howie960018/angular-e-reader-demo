@@ -37,9 +37,23 @@ export class OrderService {
     );
   }
 
-  /** Create order from current cart — backend handles wallet deduction & cart clearing */
+  /** 確認下單：建立 PENDING 訂單，不扣款 */
   createOrder(): Observable<Order> {
     return this.http.post<any>(this.baseUrl, {}).pipe(
+      map(o => this.normalizeOrder(o))
+    );
+  }
+
+  /** 確認付款：扣款並完成訂單 */
+  confirmPayment(orderId: string): Observable<Order> {
+    return this.http.post<any>(`${this.baseUrl}/${orderId}/pay`, {}).pipe(
+      map(o => this.normalizeOrder(o))
+    );
+  }
+
+  /** 使用者主動取消待付款訂單 */
+  cancelOrder(orderId: string): Observable<Order> {
+    return this.http.post<any>(`${this.baseUrl}/${orderId}/cancel`, {}).pipe(
       map(o => this.normalizeOrder(o))
     );
   }
@@ -67,11 +81,13 @@ export class OrderService {
     return {
       id: String(raw.id),
       userId: String(raw.userId),
+      username: raw.username ?? undefined,
       items,
       totalPrice: raw.totalPrice,
       status: raw.status as OrderStatus,
       createdAt: new Date(raw.createdAt),
-      updatedAt: new Date(raw.updatedAt)
+      updatedAt: new Date(raw.updatedAt),
+      expiresAt: raw.expiresAt ? new Date(raw.expiresAt) : undefined
     };
   }
 

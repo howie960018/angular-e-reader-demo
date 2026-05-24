@@ -50,25 +50,17 @@ export class CheckoutComponent implements OnInit {
   completeOrder(): void {
     if (!this.currentUser || !this.cart || this.cart.items.length === 0) return;
 
-    const totalPrice = this.getTotalPrice();
-    if (this.walletBalance < totalPrice) {
-      this.errorMessage = 'Insufficient balance in wallet';
-      return;
-    }
-
     this.isProcessing = true;
     this.errorMessage = '';
 
-    // Backend handles wallet deduction + cart clearing in one call
     this.orderService.createOrder().subscribe({
       next: () => {
+        this.cartService.loadCart().subscribe();
         this.router.navigate(['/orders']);
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Order failed. Please try again.';
+        this.errorMessage = err?.error?.message || '下單失敗，請再試一次';
         this.isProcessing = false;
-        // Refresh balance in case it changed
-        this.walletService.getWalletBalance().subscribe(b => { this.walletBalance = b; });
       }
     });
   }

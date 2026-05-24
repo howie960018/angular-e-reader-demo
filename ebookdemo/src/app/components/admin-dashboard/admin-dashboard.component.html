@@ -83,38 +83,75 @@
     <h2>訂單管理</h2>
     <table>
       <thead>
-        <tr><th>訂單編號</th><th>用戶</th><th>品項數</th><th>總金額</th><th>狀態</th><th>下單時間</th><th>操作</th></tr>
+        <tr>
+          <th></th>
+          <th>訂單編號</th>
+          <th>用戶</th>
+          <th>品項數</th>
+          <th>總金額</th>
+          <th>狀態</th>
+          <th>下單時間</th>
+          <th>操作</th>
+        </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let order of orders">
-          <td>#{{ order.id }}</td>
-          <td>{{ order.userId }}</td>
-          <td>{{ order.items.length }}</td>
-          <td>{{ order.totalPrice }} 點</td>
-          <td>
-            <ng-container *ngIf="editingOrderId === order.id; else showStatus">
-              <select [(ngModel)]="editOrderStatus">
-                <option value="PENDING">處理中</option>
-                <option value="COMPLETED">已完成</option>
-                <option value="CANCELLED">已取消</option>
-              </select>
-            </ng-container>
-            <ng-template #showStatus>
-              <span [class]="'status ' + order.status.toLowerCase()">{{ getStatusLabel(order.status) }}</span>
-            </ng-template>
-          </td>
-          <td>{{ order.createdAt | date:'yyyy/MM/dd HH:mm' }}</td>
-          <td class="action-btns">
-            <ng-container *ngIf="editingOrderId === order.id; else orderActions">
-              <button class="btn btn-success" (click)="saveEditOrder()">儲存</button>
-              <button class="btn btn-secondary" (click)="cancelEditOrder()">取消</button>
-            </ng-container>
-            <ng-template #orderActions>
-              <button class="btn btn-edit" (click)="startEditOrder(order)">編輯狀態</button>
-              <button class="btn btn-delete" (click)="deleteOrder(order.id)">刪除</button>
-            </ng-template>
-          </td>
-        </tr>
+        <ng-container *ngFor="let order of orders">
+          <!-- 主資料列 -->
+          <tr>
+            <td>
+              <button class="btn-expand" (click)="toggleOrderDetail(order.id)"
+                      [title]="expandedOrderId === order.id ? '收合' : '展開書目'">
+                {{ expandedOrderId === order.id ? '▼' : '▶' }}
+              </button>
+            </td>
+            <td>#{{ order.id }}</td>
+            <td>{{ order.username || order.userId }}</td>
+            <td>{{ order.items.length }} 本</td>
+            <td>{{ order.totalPrice }} 點</td>
+            <td>
+              <ng-container *ngIf="editingOrderId === order.id; else showStatus">
+                <span class="cancel-confirm-text">確認取消此訂單？</span>
+              </ng-container>
+              <ng-template #showStatus>
+                <span [class]="'status ' + order.status.toLowerCase()">{{ getStatusLabel(order.status) }}</span>
+              </ng-template>
+            </td>
+            <td>{{ order.createdAt | date:'yyyy/MM/dd HH:mm' }}</td>
+            <td class="action-btns">
+              <ng-container *ngIf="editingOrderId === order.id; else orderActions">
+                <button class="btn btn-delete" (click)="saveEditOrder()">確認取消</button>
+                <button class="btn btn-secondary" (click)="cancelEditOrder()">放棄</button>
+              </ng-container>
+              <ng-template #orderActions>
+                <!-- 只有 PENDING 訂單可由管理員取消 -->
+                <button *ngIf="order.status === 'PENDING'" class="btn btn-edit"
+                        (click)="startEditOrder(order)">強制取消</button>
+                <button class="btn btn-delete" (click)="deleteOrder(order.id)">刪除</button>
+              </ng-template>
+            </td>
+          </tr>
+          <!-- 展開細項列 -->
+          <tr *ngIf="expandedOrderId === order.id" class="order-detail-row">
+            <td colspan="8">
+              <div class="order-detail-panel">
+                <table class="inner-table">
+                  <thead>
+                    <tr><th>書名</th><th>作者</th><th>單價</th><th>數量</th><th>小計</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of order.items">
+                      <td>{{ item.book.title }}</td>
+                      <td>{{ item.book.author }}</td>
+                      <td>{{ item.price }} 點</td>
+                      <td>{{ item.quantity }}</td>
+                      <td>{{ item.price * item.quantity }} 點</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
       </tbody>
     </table>
   </div>

@@ -18,15 +18,14 @@
       <h2>付款方式</h2>
       <div class="wallet-info">
         <p>錢包餘額：<strong>{{ walletBalance }} 點</strong></p>
-        <div *ngIf="walletBalance < getTotalPrice()" class="insufficient-balance">
-          <p>⚠️ 餘額不足！還需要 {{ getTotalPrice() - walletBalance }} 點。</p>
-          <a href="/wallet">前往儲值</a>
-        </div>
+      </div>
+      <div *ngIf="walletBalance < getTotalPrice()" class="insufficient-balance">
+        <p>⚠️ 餘額不足！請在付款前先儲值（下單後仍有 5 分鐘可補充餘額）。</p>
+        <a href="/wallet">前往儲值</a>
       </div>
       <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
-      <button class="btn btn-primary" (click)="completeOrder()"
-        [disabled]="isProcessing || walletBalance < getTotalPrice()">
-        {{ isProcessing ? '處理中...' : '確認下單' }}
+      <button class="btn btn-primary" (click)="completeOrder()" [disabled]="isProcessing">
+        {{ isProcessing ? '建立中...' : '確認下單' }}
       </button>
       <button class="btn btn-secondary" (click)="goBack()" [disabled]="isProcessing">返回購物車</button>
     </div>

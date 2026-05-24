@@ -20,6 +20,7 @@ public class OrderDto {
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime expiresAt;
 
     @Getter @Setter
     public static class OrderItemDto {
@@ -51,6 +52,7 @@ public class OrderDto {
         dto.setStatus(order.getStatus());
         dto.setCreatedAt(order.getCreatedAt());
         dto.setUpdatedAt(order.getUpdatedAt());
+        dto.setExpiresAt(order.getExpiresAt());
 
         List<OrderItemDto> itemDtos = order.getItems().stream()
                 .map(OrderItemDto::from)

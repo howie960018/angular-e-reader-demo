@@ -209,6 +209,17 @@
   background-color: #229954;
 }
 
+.badge-pending {
+  display: inline-block;
+  padding: 0.35rem 0.9rem;
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffe58f;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
 @media (max-width: 768px) {
   .content {
     flex-direction: column;

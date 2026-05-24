@@ -18,4 +18,8 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     @Query("SELECT DISTINCT oi.book FROM OrderItem oi " +
            "WHERE oi.order.user = :user AND oi.order.status = 'COMPLETED'")
     List<Book> findPurchasedBooksByUser(@Param("user") AppUser user);
+
+    @Query("SELECT COUNT(oi) > 0 FROM OrderItem oi " +
+           "WHERE oi.order.user = :user AND oi.book = :book AND oi.order.status = 'PENDING'")
+    boolean hasBookInPendingOrder(@Param("user") AppUser user, @Param("book") Book book);
 }
