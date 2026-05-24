@@ -1,6 +1,5 @@
 package com.ctbc.ebookstore.repository;
 
-import com.ctbc.ebookstore.bean.AppUser;
 import com.ctbc.ebookstore.bean.Book;
 import org.springframework.data.jpa.repository.JpaRepository;
 
