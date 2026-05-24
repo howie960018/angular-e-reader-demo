@@ -23,8 +23,8 @@ export class SellerDashboardComponent implements OnInit {
   successMessage = '';
   errorMessage = '';
 
-  newBook = { title: '', author: '', description: '', price: 0, status: 'active', categoryId: '', coverImage: '' };
-  editBook = { title: '', author: '', description: '', price: 0, status: 'active', categoryId: '', coverImage: '' };
+  newBook = { title: '', author: '', description: '', price: 0, status: 'active', categoryId: '', coverImage: '', content: '' };
+  editBook = { title: '', author: '', description: '', price: 0, status: 'active', categoryId: '', coverImage: '', content: '' };
 
   readonly sellerStatuses = [
     { value: 'draft',        label: '草稿（未上架）' },
@@ -103,7 +103,7 @@ export class SellerDashboardComponent implements OnInit {
     this.bookService.addBook(payload as any).subscribe({
       next: () => {
         this.showSuccessMessage('書籍新增成功！');
-        this.newBook = { title: '', author: '', description: '', price: 0, status: 'active', categoryId: '', coverImage: '' };
+        this.newBook = { title: '', author: '', description: '', price: 0, status: 'active', categoryId: '', coverImage: '', content: '' };
         this.showAddForm = false;
         this.loadBooks();
       },
@@ -115,7 +115,8 @@ export class SellerDashboardComponent implements OnInit {
     this.editingBook = book;
     this.editBook = {
       title: book.title, author: book.author, description: book.description,
-      price: book.price, status: book.status, categoryId: book.categoryId, coverImage: book.coverImage
+      price: book.price, status: book.status, categoryId: book.categoryId, coverImage: book.coverImage,
+      content: book.content || ''
     };
     this.showEditForm = true;
     this.showAddForm = false;

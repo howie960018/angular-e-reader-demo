@@ -34,7 +34,7 @@ export class AdminDashboardComponent implements OnInit {
   // 書籍編輯
   editingBook: Book | null = null;
   allCategories: Category[] = [];
-  editBook = { title: '', author: '', description: '', price: 0, status: 'active', categoryId: '', coverImage: '' };
+  editBook = { title: '', author: '', description: '', price: 0, status: 'active', categoryId: '', coverImage: '', content: '' };
 
   readonly allStatuses = [
     { value: 'draft',        label: '草稿（未上架）' },
@@ -106,7 +106,8 @@ export class AdminDashboardComponent implements OnInit {
     this.editingBook = book;
     this.editBook = {
       title: book.title, author: book.author, description: book.description,
-      price: book.price, status: book.status, categoryId: book.categoryId, coverImage: book.coverImage
+      price: book.price, status: book.status, categoryId: book.categoryId, coverImage: book.coverImage,
+      content: book.content || ''
     };
   }
 

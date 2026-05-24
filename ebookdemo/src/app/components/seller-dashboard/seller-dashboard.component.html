@@ -59,6 +59,10 @@
           <label>內容簡介</label>
           <textarea [(ngModel)]="newBook.description" placeholder="請輸入書籍簡介" rows="3"></textarea>
         </div>
+        <div class="form-group full-width">
+          <label>電子書內文</label>
+          <textarea [(ngModel)]="newBook.content" placeholder="請輸入電子書完整內文" rows="10"></textarea>
+        </div>
       </div>
       <div class="form-actions">
         <button class="btn btn-success" (click)="addBook()">確認新增</button>
@@ -102,6 +106,10 @@
         <div class="form-group full-width">
           <label>內容簡介</label>
           <textarea [(ngModel)]="editBook.description" rows="3"></textarea>
+        </div>
+        <div class="form-group full-width">
+          <label>電子書內文</label>
+          <textarea [(ngModel)]="editBook.content" placeholder="請輸入電子書完整內文" rows="10"></textarea>
         </div>
       </div>
       <div class="form-actions">
