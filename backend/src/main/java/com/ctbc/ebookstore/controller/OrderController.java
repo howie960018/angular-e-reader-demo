@@ -84,10 +84,4 @@ public class OrderController {
         return OrderDto.from(orderService.updateStatus(id, req.getStatus()));
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasRole('ADMIN')")
-    public void delete(@PathVariable Long id) {
-        orderService.delete(id);
-    }
 }

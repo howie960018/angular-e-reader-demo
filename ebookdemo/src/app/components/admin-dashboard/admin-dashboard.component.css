@@ -396,6 +396,11 @@ tbody tr:hover {
   color: #34495e;
 }
 
+.text-muted-sm {
+  color: #bdc3c7;
+  font-size: 0.9rem;
+}
+
 .cancel-confirm-text {
   color: #e74c3c;
   font-weight: 600;

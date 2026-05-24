@@ -3,7 +3,6 @@ package com.ctbc.ebookstore.service;
 import com.ctbc.ebookstore.bean.*;
 import com.ctbc.ebookstore.dto.RevenueShareDto;
 import com.ctbc.ebookstore.dto.SettlementSummary;
-import com.ctbc.ebookstore.exception.ResourceNotFoundException;
 import com.ctbc.ebookstore.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

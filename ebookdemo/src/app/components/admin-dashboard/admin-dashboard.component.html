@@ -126,7 +126,7 @@
                 <!-- 只有 PENDING 訂單可由管理員取消 -->
                 <button *ngIf="order.status === 'PENDING'" class="btn btn-edit"
                         (click)="startEditOrder(order)">強制取消</button>
-                <button class="btn btn-delete" (click)="deleteOrder(order.id)">刪除</button>
+                <span *ngIf="order.status !== 'PENDING'" class="text-muted-sm">—</span>
               </ng-template>
             </td>
           </tr>
