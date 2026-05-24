@@ -66,7 +66,7 @@ export class SellerDashboardComponent implements OnInit {
   }
 
   loadBooks(): void {
-    this.bookService.getMyBooks().subscribe(books => { this.books = books; });
+    this.bookService.getMyBooks().subscribe(r => { this.books = r.content; });
   }
 
   loadRevenue(): void {

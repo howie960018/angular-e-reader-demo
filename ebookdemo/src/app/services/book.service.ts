@@ -4,6 +4,13 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Book, Category } from '../models';
 
+export interface PageResult<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  currentPage: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -12,9 +19,10 @@ export class BookService {
 
   constructor(private http: HttpClient) {}
 
-  getBooks(): Observable<Book[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/books`).pipe(
-      map(list => list.map(b => this.normalizeBook(b)))
+  getBooks(page = 0, size = 8): Observable<PageResult<Book>> {
+    const params = new HttpParams().set('page', page).set('size', size);
+    return this.http.get<any>(`${this.baseUrl}/books`, { params }).pipe(
+      map(p => this.toPageResult<Book>(p, b => this.normalizeBook(b)))
     );
   }
 
@@ -30,17 +38,17 @@ export class BookService {
     );
   }
 
-  getBooksByCategory(categoryId: string): Observable<Book[]> {
-    const params = new HttpParams().set('categoryId', categoryId);
-    return this.http.get<any[]>(`${this.baseUrl}/books`, { params }).pipe(
-      map(list => list.map(b => this.normalizeBook(b)))
+  getBooksByCategory(categoryId: string, page = 0, size = 8): Observable<PageResult<Book>> {
+    const params = new HttpParams().set('categoryId', categoryId).set('page', page).set('size', size);
+    return this.http.get<any>(`${this.baseUrl}/books`, { params }).pipe(
+      map(p => this.toPageResult<Book>(p, b => this.normalizeBook(b)))
     );
   }
 
-  getBooksBySeller(sellerId: string): Observable<Book[]> {
-    const params = new HttpParams().set('sellerId', sellerId);
-    return this.http.get<any[]>(`${this.baseUrl}/books`, { params }).pipe(
-      map(list => list.map(b => this.normalizeBook(b)))
+  getBooksBySeller(sellerId: string, page = 0, size = 8): Observable<PageResult<Book>> {
+    const params = new HttpParams().set('sellerId', sellerId).set('page', page).set('size', size);
+    return this.http.get<any>(`${this.baseUrl}/books`, { params }).pipe(
+      map(p => this.toPageResult<Book>(p, b => this.normalizeBook(b)))
     );
   }
 
@@ -90,16 +98,18 @@ export class BookService {
   }
 
   /** 出版商：取得自己所有書籍（含 draft/discontinued） */
-  getMyBooks(): Observable<Book[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/books/my`).pipe(
-      map(list => list.map(b => this.normalizeBook(b)))
+  getMyBooks(page = 0, size = 20): Observable<PageResult<Book>> {
+    const params = new HttpParams().set('page', page).set('size', size);
+    return this.http.get<any>(`${this.baseUrl}/books/my`, { params }).pipe(
+      map(p => this.toPageResult<Book>(p, b => this.normalizeBook(b)))
     );
   }
 
   /** Admin：取得所有書籍（含所有狀態） */
-  getAllBooksForAdmin(): Observable<Book[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/books/all`).pipe(
-      map(list => list.map(b => this.normalizeBook(b)))
+  getAllBooksForAdmin(page = 0, size = 20): Observable<PageResult<Book>> {
+    const params = new HttpParams().set('page', page).set('size', size);
+    return this.http.get<any>(`${this.baseUrl}/books/all`, { params }).pipe(
+      map(p => this.toPageResult<Book>(p, b => this.normalizeBook(b)))
     );
   }
 
@@ -136,6 +146,16 @@ export class BookService {
       status: raw.status ?? 'active',
       createdAt: new Date(raw.createdAt),
       updatedAt: new Date(raw.updatedAt)
+    };
+  }
+
+  private toPageResult<T>(p: any, normalize: (item: any) => T): PageResult<T> {
+    const items = Array.isArray(p) ? p : (p.content ?? []);
+    return {
+      content: items.map(normalize),
+      totalPages: p.totalPages ?? 1,
+      totalElements: p.totalElements ?? items.length,
+      currentPage: p.number ?? 0
     };
   }
 

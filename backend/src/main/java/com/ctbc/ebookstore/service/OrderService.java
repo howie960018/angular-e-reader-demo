@@ -9,9 +9,16 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 public class OrderService {
@@ -33,8 +40,18 @@ public class OrderService {
         return orderRepo.findByUser(user);
     }
 
+    public Page<BookOrder> getUserOrders(AppUser user, Pageable pageable) {
+        return orderRepo.findByUser(user, pageable);
+    }
+
     public List<BookOrder> getAllOrders() {
         return orderRepo.findAllByOrderByCreatedAtDesc();
+    }
+
+    public Page<BookOrder> getAllOrders(Pageable pageable) {
+        return orderRepo.findAll(PageRequest.of(
+                pageable.getPageNumber(), pageable.getPageSize(),
+                Sort.by("createdAt").descending()));
     }
 
     public BookOrder findById(Long id) {
@@ -149,9 +166,20 @@ public class OrderService {
         }
     }
 
+    private static final Map<String, Set<String>> ALLOWED_TRANSITIONS = Map.of(
+        "PENDING",   Set.of("COMPLETED", "CANCELLED"),
+        "COMPLETED", Set.of(),
+        "CANCELLED", Set.of()
+    );
+
     @Transactional
     public BookOrder updateStatus(Long orderId, String status) {
         BookOrder order = findById(orderId);
+        Set<String> allowed = ALLOWED_TRANSITIONS.getOrDefault(order.getStatus(), Set.of());
+        if (!allowed.contains(status)) {
+            throw new BadRequestException(
+                "不允許的狀態轉換：" + order.getStatus() + " → " + status);
+        }
         order.setStatus(status);
         order.setUpdatedAt(LocalDateTime.now());
         return orderRepo.save(order);

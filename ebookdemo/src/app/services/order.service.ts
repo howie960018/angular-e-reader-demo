@@ -14,8 +14,8 @@ export class OrderService {
 
   /** Current user's orders */
   getOrders(): Observable<Order[]> {
-    return this.http.get<any[]>(this.baseUrl).pipe(
-      map(list => list.map(o => this.normalizeOrder(o)))
+    return this.http.get<any>(this.baseUrl).pipe(
+      map(page => (page.content ?? page).map((o: any) => this.normalizeOrder(o)))
     );
   }
 
@@ -26,8 +26,8 @@ export class OrderService {
 
   /** All orders — admin only */
   getAllOrders(): Observable<Order[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/all`).pipe(
-      map(list => list.map(o => this.normalizeOrder(o)))
+    return this.http.get<any>(`${this.baseUrl}/all`).pipe(
+      map(page => (page.content ?? page).map((o: any) => this.normalizeOrder(o)))
     );
   }
 

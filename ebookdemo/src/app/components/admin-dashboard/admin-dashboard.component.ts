@@ -84,7 +84,7 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   loadAll(): void {
-    this.bookService.getAllBooksForAdmin().subscribe(b => { this.books = b; });
+    this.bookService.getAllBooksForAdmin().subscribe(r => { this.books = r.content; });
     this.orderService.getAllOrders().subscribe(o => { this.orders = o; });
     this.bookService.getCategories().subscribe(c => { this.categories = c; this.allCategories = c; });
     this.walletService.getAllTopUpCodes().subscribe(codes => { this.topUpCodes = codes; });
@@ -117,7 +117,7 @@ export class AdminDashboardComponent implements OnInit {
       next: () => {
         this.showSuccess('書籍已更新');
         this.editingBook = null;
-        this.bookService.getAllBooksForAdmin().subscribe(b => { this.books = b; });
+        this.bookService.getAllBooksForAdmin().subscribe(r => { this.books = r.content; });
       },
       error: err => { this.showError(err?.error?.message || '更新失敗'); }
     });
@@ -128,7 +128,7 @@ export class AdminDashboardComponent implements OnInit {
   deleteBook(bookId: string): void {
     if (!confirm('確定刪除此書籍？')) return;
     this.bookService.deleteBook(bookId).subscribe({
-      next: () => { this.showSuccess('書籍已刪除'); this.bookService.getBooks().subscribe(b => { this.books = b; }); },
+      next: () => { this.showSuccess('書籍已刪除'); this.bookService.getAllBooksForAdmin().subscribe(r => { this.books = r.content; }); },
       error: err => { this.showError(err?.error?.message || '刪除失敗'); }
     });
   }

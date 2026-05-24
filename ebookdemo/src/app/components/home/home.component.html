@@ -34,6 +34,17 @@
           </div>
         </div>
       </div>
+
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button class="page-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 0">&#8249;</button>
+        <button
+          *ngFor="let p of pageNumbers"
+          class="page-btn"
+          [class.active]="p === currentPage"
+          (click)="goToPage(p)">{{ p + 1 }}</button>
+        <button class="page-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages - 1">&#8250;</button>
+        <span class="page-info">共 {{ totalElements }} 本・第 {{ currentPage + 1 }} / {{ totalPages }} 頁</span>
+      </div>
     </main>
   </div>
 </div>

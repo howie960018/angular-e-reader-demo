@@ -18,6 +18,11 @@ export class HomeComponent implements OnInit {
   currentUser: User | null = null;
   searchText: string = '';
 
+  currentPage = 0;
+  totalPages = 1;
+  totalElements = 0;
+  readonly pageSize = 8;
+
   purchasedBookIds = new Set<string>();
   pendingBookIds = new Set<string>();
 
@@ -44,8 +49,15 @@ export class HomeComponent implements OnInit {
   }
 
   loadBooks(): void {
-    this.bookService.getBooks().subscribe(books => {
-      this.books = books;
+    const fetch$ = this.selectedCategory
+      ? this.bookService.getBooksByCategory(this.selectedCategory, this.currentPage, this.pageSize)
+      : this.bookService.getBooks(this.currentPage, this.pageSize);
+
+    fetch$.subscribe(result => {
+      this.books = result.content;
+      this.totalPages = result.totalPages;
+      this.totalElements = result.totalElements;
+      this.currentPage = result.currentPage;
     });
   }
 
@@ -71,20 +83,25 @@ export class HomeComponent implements OnInit {
 
   filterByCategory(categoryId: string): void {
     this.selectedCategory = categoryId;
-    if (categoryId) {
-      this.bookService.getBooksByCategory(categoryId).subscribe(books => {
-        this.books = books;
-      });
-    } else {
-      this.loadBooks();
-    }
+    this.currentPage = 0;
+    this.loadBooks();
+  }
+
+  goToPage(page: number): void {
+    if (page < 0 || page >= this.totalPages) return;
+    this.currentPage = page;
+    this.loadBooks();
+  }
+
+  get pageNumbers(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i);
   }
 
   get filteredBooks(): Book[] {
+    const q = this.searchText.toLowerCase();
     return this.books.filter(book =>
       !this.purchasedBookIds.has(book.id) &&
-      (book.title.toLowerCase().includes(this.searchText.toLowerCase()) ||
-       book.author.toLowerCase().includes(this.searchText.toLowerCase()))
+      (!q || book.title.toLowerCase().includes(q) || book.author.toLowerCase().includes(q))
     );
   }
 

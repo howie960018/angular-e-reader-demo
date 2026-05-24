@@ -63,7 +63,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/books/all").authenticated()
                 .requestMatchers("/api/books/my").authenticated()
                 .requestMatchers("/api/books/*/purchased").authenticated()
-                .requestMatchers("/api/books/*/content").permitAll()
+                .requestMatchers("/api/books/*/content").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/books/**", "/api/categories/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .anyRequest().authenticated()

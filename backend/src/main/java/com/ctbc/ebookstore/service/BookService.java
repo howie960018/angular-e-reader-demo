@@ -8,6 +8,8 @@ import com.ctbc.ebookstore.exception.ForbiddenException;
 import com.ctbc.ebookstore.exception.ResourceNotFoundException;
 import com.ctbc.ebookstore.repository.BookRepository;
 import com.ctbc.ebookstore.repository.CategoryRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,14 +31,26 @@ public class BookService {
         return bookRepo.findByStatus("active");
     }
 
+    public Page<Book> findAll(Pageable pageable) {
+        return bookRepo.findByStatus("active", pageable);
+    }
+
     /** Admin 後台：回傳所有書籍（含所有狀態） */
     public List<Book> findAllForAdmin() {
         return bookRepo.findAll();
     }
 
+    public Page<Book> findAllForAdmin(Pageable pageable) {
+        return bookRepo.findAll(pageable);
+    }
+
     /** 出版商後台：回傳自己所有書籍（含 draft/discontinued） */
     public List<Book> findMySells(AppUser seller) {
         return bookRepo.findBySellerId(seller.getId());
+    }
+
+    public Page<Book> findMySells(AppUser seller, Pageable pageable) {
+        return bookRepo.findBySellerId(seller.getId(), pageable);
     }
 
     public Book findById(Long id) {
@@ -48,8 +62,16 @@ public class BookService {
         return bookRepo.findByCategoryIdAndStatus(categoryId, "active");
     }
 
+    public Page<Book> findByCategory(Long categoryId, Pageable pageable) {
+        return bookRepo.findByCategoryIdAndStatus(categoryId, "active", pageable);
+    }
+
     public List<Book> findBySeller(Long sellerId) {
         return bookRepo.findBySellerIdAndStatus(sellerId, "active");
+    }
+
+    public Page<Book> findBySeller(Long sellerId, Pageable pageable) {
+        return bookRepo.findBySellerIdAndStatus(sellerId, "active", pageable);
     }
 
     public Book create(BookRequest req, AppUser seller) {

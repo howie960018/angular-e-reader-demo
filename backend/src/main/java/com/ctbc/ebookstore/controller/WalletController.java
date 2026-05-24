@@ -36,7 +36,7 @@ public class WalletController {
     @GetMapping
     public WalletDto getWallet(Authentication auth) {
         AppUser user = userService.findByUsername(auth.getName());
-        return WalletDto.from(walletService.getUserWallet(user));
+        return WalletDto.from(walletService.getOrCreateWallet(user));
     }
 
     @GetMapping("/balance")

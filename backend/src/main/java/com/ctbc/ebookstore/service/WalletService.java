@@ -53,19 +53,12 @@ public class WalletService {
         });
     }
 
-    public Wallet getUserWallet(AppUser user) {
-        return walletRepo.findByUser(user).orElseGet(() -> {
-            String type = user.getRole().equals("SELLER") ? "seller" : "user";
-            return walletRepo.save(new Wallet(user, type, BigDecimal.ZERO));
-        });
-    }
-
     public BigDecimal getBalance(AppUser user) {
-        return getUserWallet(user).getBalance();
+        return getOrCreateWallet(user).getBalance();
     }
 
     public List<WalletTransaction> getTransactions(AppUser user) {
-        Wallet wallet = getUserWallet(user);
+        Wallet wallet = getOrCreateWallet(user);
         return transactionRepo.findByWalletOrderByCreatedAtDesc(wallet);
     }
 

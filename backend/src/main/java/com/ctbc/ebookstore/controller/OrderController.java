@@ -6,13 +6,13 @@ import com.ctbc.ebookstore.dto.OrderDto;
 import com.ctbc.ebookstore.dto.OrderStatusRequest;
 import com.ctbc.ebookstore.service.AppUserService;
 import com.ctbc.ebookstore.service.OrderService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -27,19 +27,16 @@ public class OrderController {
     }
 
     @GetMapping
-    public List<OrderDto> getUserOrders(Authentication auth) {
+    public Page<OrderDto> getUserOrders(Authentication auth,
+                                        @PageableDefault(size = 20) Pageable pageable) {
         AppUser user = userService.findByUsername(auth.getName());
-        return orderService.getUserOrders(user).stream()
-                .map(OrderDto::from)
-                .collect(Collectors.toList());
+        return orderService.getUserOrders(user, pageable).map(OrderDto::from);
     }
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public List<OrderDto> getAllOrders() {
-        return orderService.getAllOrders().stream()
-                .map(OrderDto::from)
-                .collect(Collectors.toList());
+    public Page<OrderDto> getAllOrders(@PageableDefault(size = 20) Pageable pageable) {
+        return orderService.getAllOrders(pageable).map(OrderDto::from);
     }
 
     @GetMapping("/{id}")
