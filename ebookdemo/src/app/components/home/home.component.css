@@ -7,11 +7,19 @@
 .search-bar {
   max-width: 1200px;
   margin: 0 auto 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1rem 1.5rem;
+}
+
+.search-row {
+  margin-bottom: 0.75rem;
 }
 
 .search-input {
   width: 100%;
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   border: 2px solid #bdc3c7;
   border-radius: 4px;
   font-size: 1rem;
@@ -22,6 +30,87 @@
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.filter-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.filter-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #7f8c8d;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sort-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: white;
+  cursor: pointer;
+  min-width: 160px;
+  transition: border-color 0.2s;
+}
+
+.sort-select:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.price-range {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.price-input {
+  width: 90px;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #bdc3c7;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+
+.price-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.price-dash {
+  color: #95a5a6;
+  font-size: 0.9rem;
+}
+
+.reset-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e74c3c;
+  background: white;
+  color: #e74c3c;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  align-self: flex-end;
+}
+
+.reset-btn:hover {
+  background: #e74c3c;
+  color: white;
 }
 
 .content {

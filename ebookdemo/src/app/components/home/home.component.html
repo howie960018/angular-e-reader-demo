@@ -1,6 +1,30 @@
 <div class="home-container">
   <div class="search-bar">
-    <input type="text" [(ngModel)]="searchText" placeholder="搜尋書名或作者..." class="search-input" />
+    <div class="search-row">
+      <input type="text" [ngModel]="searchText" (ngModelChange)="onSearchChange($event)" placeholder="搜尋書名或作者..." class="search-input" />
+    </div>
+    <div class="filter-row">
+      <div class="filter-group">
+        <label class="filter-label">排序</label>
+        <select [(ngModel)]="sortBy" class="sort-select">
+          <option value="default">預設排序</option>
+          <option value="price-asc">價格：低到高</option>
+          <option value="price-desc">價格：高到低</option>
+          <option value="title-asc">書名：A → Z</option>
+          <option value="title-desc">書名：Z → A</option>
+          <option value="newest">最新上架</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">價格範圍（點）</label>
+        <div class="price-range">
+          <input type="number" [(ngModel)]="minPrice" placeholder="最低" class="price-input" min="0" />
+          <span class="price-dash">—</span>
+          <input type="number" [(ngModel)]="maxPrice" placeholder="最高" class="price-input" min="0" />
+        </div>
+      </div>
+      <button *ngIf="hasActiveFilters" (click)="resetFilters()" class="reset-btn">✕ 清除篩選</button>
+    </div>
   </div>
   <div class="content">
     <aside class="sidebar">

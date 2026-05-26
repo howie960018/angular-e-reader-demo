@@ -66,6 +66,14 @@ public class BookService {
         return bookRepo.findByCategoryIdAndStatus(categoryId, "active", pageable);
     }
 
+    public Page<Book> search(String keyword, Pageable pageable) {
+        return bookRepo.searchByKeyword(keyword, pageable);
+    }
+
+    public Page<Book> searchByCategory(Long categoryId, String keyword, Pageable pageable) {
+        return bookRepo.searchByCategoryAndKeyword(categoryId, keyword, pageable);
+    }
+
     public List<Book> findBySeller(Long sellerId) {
         return bookRepo.findBySellerIdAndStatus(sellerId, "active");
     }

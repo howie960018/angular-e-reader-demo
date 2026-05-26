@@ -19,8 +19,9 @@ export class BookService {
 
   constructor(private http: HttpClient) {}
 
-  getBooks(page = 0, size = 8): Observable<PageResult<Book>> {
-    const params = new HttpParams().set('page', page).set('size', size);
+  getBooks(page = 0, size = 8, keyword = ''): Observable<PageResult<Book>> {
+    let params = new HttpParams().set('page', page).set('size', size);
+    if (keyword.trim()) params = params.set('keyword', keyword.trim());
     return this.http.get<any>(`${this.baseUrl}/books`, { params }).pipe(
       map(p => this.toPageResult<Book>(p, b => this.normalizeBook(b)))
     );
@@ -38,8 +39,9 @@ export class BookService {
     );
   }
 
-  getBooksByCategory(categoryId: string, page = 0, size = 8): Observable<PageResult<Book>> {
-    const params = new HttpParams().set('categoryId', categoryId).set('page', page).set('size', size);
+  getBooksByCategory(categoryId: string, page = 0, size = 8, keyword = ''): Observable<PageResult<Book>> {
+    let params = new HttpParams().set('categoryId', categoryId).set('page', page).set('size', size);
+    if (keyword.trim()) params = params.set('keyword', keyword.trim());
     return this.http.get<any>(`${this.baseUrl}/books`, { params }).pipe(
       map(p => this.toPageResult<Book>(p, b => this.normalizeBook(b)))
     );

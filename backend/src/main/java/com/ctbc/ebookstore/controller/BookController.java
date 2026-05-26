@@ -32,8 +32,12 @@ public class BookController {
     public Page<BookDto> getAll(
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Long sellerId,
+            @RequestParam(required = false) String keyword,
             @PageableDefault(size = 20) Pageable pageable) {
 
+        boolean hasKeyword = keyword != null && !keyword.isBlank();
+        if (hasKeyword && categoryId != null) return bookService.searchByCategory(categoryId, keyword, pageable).map(BookDto::from);
+        if (hasKeyword) return bookService.search(keyword, pageable).map(BookDto::from);
         if (categoryId != null) return bookService.findByCategory(categoryId, pageable).map(BookDto::from);
         if (sellerId   != null) return bookService.findBySeller(sellerId, pageable).map(BookDto::from);
         return bookService.findAll(pageable).map(BookDto::from);

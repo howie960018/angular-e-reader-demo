@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { BookService } from '../../services/book.service';
 import { AuthService } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
@@ -11,12 +13,15 @@ import { Book, Category, OrderStatus, User, UserRole } from '../../models';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   books: Book[] = [];
   categories: Category[] = [];
   selectedCategory: string = '';
   currentUser: User | null = null;
   searchText: string = '';
+  sortBy: string = 'default';
+  minPrice: number | null = null;
+  maxPrice: number | null = null;
 
   currentPage = 0;
   totalPages = 1;
@@ -25,6 +30,9 @@ export class HomeComponent implements OnInit {
 
   purchasedBookIds = new Set<string>();
   pendingBookIds = new Set<string>();
+
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   constructor(
     private bookService: BookService,
@@ -35,6 +43,15 @@ export class HomeComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.currentPage = 0;
+      this.loadBooks();
+    });
+
     this.loadBooks();
     this.loadCategories();
     this.authService.currentUser.subscribe(user => {
@@ -49,9 +66,10 @@ export class HomeComponent implements OnInit {
   }
 
   loadBooks(): void {
+    const keyword = this.searchText.trim();
     const fetch$ = this.selectedCategory
-      ? this.bookService.getBooksByCategory(this.selectedCategory, this.currentPage, this.pageSize)
-      : this.bookService.getBooks(this.currentPage, this.pageSize);
+      ? this.bookService.getBooksByCategory(this.selectedCategory, this.currentPage, this.pageSize, keyword)
+      : this.bookService.getBooks(this.currentPage, this.pageSize, keyword);
 
     fetch$.subscribe(result => {
       this.books = result.content;
@@ -59,6 +77,16 @@ export class HomeComponent implements OnInit {
       this.totalElements = result.totalElements;
       this.currentPage = result.currentPage;
     });
+  }
+
+  onSearchChange(value: string): void {
+    this.searchText = value;
+    this.searchSubject.next(value);
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadCategories(): void {
@@ -81,6 +109,16 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  resetFilters(): void {
+    this.sortBy = 'default';
+    this.minPrice = null;
+    this.maxPrice = null;
+  }
+
+  get hasActiveFilters(): boolean {
+    return this.sortBy !== 'default' || this.minPrice !== null || this.maxPrice !== null;
+  }
+
   filterByCategory(categoryId: string): void {
     this.selectedCategory = categoryId;
     this.currentPage = 0;
@@ -98,11 +136,23 @@ export class HomeComponent implements OnInit {
   }
 
   get filteredBooks(): Book[] {
-    const q = this.searchText.toLowerCase();
-    return this.books.filter(book =>
+    const min = this.minPrice !== null && !isNaN(+this.minPrice) ? +this.minPrice : null;
+    const max = this.maxPrice !== null && !isNaN(+this.maxPrice) ? +this.maxPrice : null;
+
+    const result = this.books.filter(book =>
       !this.purchasedBookIds.has(book.id) &&
-      (!q || book.title.toLowerCase().includes(q) || book.author.toLowerCase().includes(q))
+      (min === null || book.price >= min) &&
+      (max === null || book.price <= max)
     );
+
+    switch (this.sortBy) {
+      case 'price-asc':  return [...result].sort((a, b) => a.price - b.price);
+      case 'price-desc': return [...result].sort((a, b) => b.price - a.price);
+      case 'title-asc':  return [...result].sort((a, b) => a.title.localeCompare(b.title, 'zh-TW'));
+      case 'title-desc': return [...result].sort((a, b) => b.title.localeCompare(a.title, 'zh-TW'));
+      case 'newest':     return [...result].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      default:           return result;
+    }
   }
 
   isPending(bookId: string): boolean {
